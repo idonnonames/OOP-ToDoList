@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block title %}Focus Timer – Productivity Hub{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('task_detail', task_id=session.task_id) }}" class="back-btn">← Back to Task</a>
+
+<div class="pom-container">
+
+  <!-- ── MAIN TIMER ── -->
+  <div class="pom-panel">
+    <div class="pom-task-label">
+      Focusing on
+      <div class="pom-task-name">{{ session.task.title }}</div>
+    </div>
+
+    <div class="pom-clock-area">
+      <!-- SVG Ring -->
+      <div class="pom-ring-wrap">
+        <svg viewBox="0 0 100 100">
+          <circle class="pom-ring-bg" cx="50" cy="50" r="44"/>
+          <circle class="pom-ring-progress" id="ringProgress" cx="50" cy="50" r="44"
+                  stroke-dasharray="276.46"
+                  stroke-dashoffset="0"/>
+        </svg>
+        <div class="pom-time-display">
+          <div class="pom-time" id="timerDisplay">{{ '%02d' % session.duration_min }}:00</div>
+          <div class="pom-phase" id="phaseLabel">FOCUS</div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="pom-controls">
+        <button class="pom-ctrl-btn" id="skipBtn" title="Skip" onclick="skipTimer()">⏭</button>
+        <button class="pom-ctrl-btn pom-play" id="playPauseBtn" onclick="toggleTimer()">▶</button>
+        <button class="pom-ctrl-btn" id="resetBtn" title="Reset" onclick="resetTimer()">↺</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CUSTOMIZER ── -->
+  <div class="pom-customizer">
+    <div class="customizer-header">
+      <span style="color:var(--amber)">⚙</span>
+      Timer Settings
+    </div>
+    <div class="customizer-body">
+
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Presets</div>
+      <div class="preset-grid" style="margin-bottom:20px;">
+        <button class="preset-btn active" onclick="applyPreset(25, 5, 15, this)">
+          <span class="preset-name">Classic</span>25/5/15
+        </button>
+        <button class="preset-btn" onclick="applyPreset(50, 10, 30, this)">
+          <span class="preset-name">Deep Work</span>50/10/30
+        </button>
+        <button class="preset-btn" onclick="applyPreset(15, 3, 10, this)">
+          <span class="preset-name">Sprints</span>15/3/10
+        </button>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-row">
+          <span class="slider-label">Focus</span>
+          <span class="slider-val" id="focusVal">{{ session.duration_min }} min</span>
+        </div>
+        <input type="range" id="focusSlider" min="5" max="90" step="5" value="{{ session.duration_min }}"
+               oninput="updateSlider('focus')">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-row">
+          <span class="slider-label">Short Break</span>
+          <span class="slider-val" id="shortVal">5 min</span>
+        </div>
+        <input type="range" id="shortSlider" min="1" max="20" step="1" value="5"
+               oninput="updateSlider('short')">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-row">
+          <span class="slider-label">Long Break</span>
+          <span class="slider-val" id="longVal">15 min</span>
+        </div>
+        <input type="range" id="longSlider" min="5" max="45" step="5" value="15"
+               oninput="updateSlider('long')">
+      </div>
+
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;">Alert Sound</div>
+      <div class="sound-row">
+        <label class="sound-opt active" id="snd-bell">
+          <input type="radio" name="sound" value="bell" checked> 🔔 Bell
+        </label>
+        <label class="sound-opt" id="snd-chime">
+          <input type="radio" name="sound" value="chime"> 🎵 Chime
+        </label>
+        <label class="sound-opt" id="snd-none">
+          <input type="radio" name="sound" value="none"> 🔇 None
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── FINISH FORM (hidden, triggered by JS) ── -->
+  <form action="{{ url_for('finish_pomodoro', session_id=session.id) }}" method="POST" id="finishForm" style="display:none">
+  </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── State ──────────────────────────────────────────
+const TOTAL_DASH = 276.46;
+const ring       = document.getElementById('ringProgress');
+let phases       = ['FOCUS', 'SHORT BREAK', 'LONG BREAK'];
+let phase        = 0; // 0=focus, 1=short, 2=long
+let pomCount     = 0;
+let isRunning    = false;
+let interval     = null;
+let totalSecs    = 0;
+let remaining    = 0;
+let hasFocusEnded = false;
+
+// Read from sliders
+function getDurations() {
+  return {
+    focus: parseInt(document.getElementById('focusSlider').value) * 60,
+    short: parseInt(document.getElementById('shortSlider').value) * 60,
+    long:  parseInt(document.getElementById('longSlider').value) * 60,
+  };
+}
+
+function initTimer() {
+  const d  = getDurations();
+  totalSecs = phase === 0 ? d.focus : phase === 1 ? d.short : d.long;
+  remaining = totalSecs;
+  hasFocusEnded = false;
+  render();
+}
+
+function render() {
+  const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+  const s = String(remaining % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+  document.getElementById('phaseLabel').textContent   = phases[phase];
+
+  const progress = remaining / totalSecs;
+  const offset   = TOTAL_DASH * (1 - progress);
+  ring.style.strokeDashoffset = offset;
+
+  // Color warning in last 20%
+  ring.classList.toggle('pom-warning', progress < 0.2 && phase === 0);
+}
+
+function toggleTimer() {
+  const btn = document.getElementById('playPauseBtn');
+  if (isRunning) {
+    clearInterval(interval);
+    isRunning = false;
+    btn.textContent = '▶';
+  } else {
+    if (remaining === 0) initTimer();
+    isRunning = true;
+    btn.textContent = '⏸';
+    interval = setInterval(tick, 1000);
+  }
+}
+
+function tick() {
+  if (remaining <= 0) {
+    clearInterval(interval);
+    isRunning = false;
+    document.getElementById('playPauseBtn').textContent = '▶';
+    onPhaseEnd();
+    return;
+  }
+  remaining--;
+  render();
+}
+
+function onPhaseEnd() {
+  playAlert();
+  if (phase === 0) {
+    // Focus just ended — log to Flask
+    hasFocusEnded = true;
+    pomCount++;
+    document.getElementById('finishForm').submit();
+  }
+  // Advance phase: focus→short, short→long (every 4), long→focus
+  if (phase === 0) {
+    phase = pomCount % 4 === 0 ? 2 : 1;
+  } else {
+    phase = 0;
+  }
+  initTimer();
+}
+
+function skipTimer() {
+  clearInterval(interval);
+  isRunning = false;
+  document.getElementById('playPauseBtn').textContent = '▶';
+  if (phase === 0 && (totalSecs - remaining) > 5) {
+    // Partial focus — still log it
+    document.getElementById('finishForm').submit();
+  }
+  phase = phase === 0 ? 1 : 0;
+  initTimer();
+}
+
+function resetTimer() {
+  clearInterval(interval);
+  isRunning = false;
+  document.getElementById('playPauseBtn').textContent = '▶';
+  initTimer();
+}
+
+// ── Sliders ───────────────────────────────────────
+function updateSlider(which) {
+  const ids = { focus:'focusVal', short:'shortVal', long:'longVal' };
+  const sl  = document.getElementById(which + 'Slider');
+  document.getElementById(ids[which]).textContent = sl.value + ' min';
+  if (!isRunning) initTimer();
+}
+
+// ── Presets ───────────────────────────────────────
+function applyPreset(f, s, l, btn) {
+  document.getElementById('focusSlider').value = f;
+  document.getElementById('shortSlider').value = s;
+  document.getElementById('longSlider').value  = l;
+  document.getElementById('focusVal').textContent = f + ' min';
+  document.getElementById('shortVal').textContent = s + ' min';
+  document.getElementById('longVal').textContent  = l + ' min';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (!isRunning) initTimer();
+}
+
+// ── Sound opts ────────────────────────────────────
+document.querySelectorAll('.sound-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.sound-opt').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+  });
+});
+
+function playAlert() {
+  const selected = document.querySelector('.sound-opt.active input');
+  if (!selected || selected.value === 'none') return;
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (selected.value === 'bell') {
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5);
+    } else {
+      osc.frequency.setValueAtTime(528, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
+    }
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.8);
+  } catch(e) {}
+}
+
+// ── Init ──────────────────────────────────────────
+initTimer();
+</script>
+{% endblock %}

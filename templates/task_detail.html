@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}{{ task.title }} – Productivity Hub{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('index') }}" class="back-btn">← Dashboard</a>
+
+<div class="detail-grid">
+
+  <!-- ── NOTES PANEL ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-dot dot-blue"></span>
+      <span class="panel-title">Notes</span>
+    </div>
+
+    <div class="detail-header">
+      <div class="detail-title">
+        {% if task.is_done %}<s style="color:var(--muted)">{% endif %}
+        {{ task.title }}
+        {% if task.is_done %}</s>{% endif %}
+      </div>
+      <div class="detail-badges">
+        <span class="note-type-badge">{{ task.task_type }}</span>
+        {% if task.task_type == 'priority' %}
+          <span class="pri-badge pri-{{ task.priority }}">{{ task.priority }}</span>
+          {% if task.is_overdue() %}<span class="overdue-badge">overdue</span>{% endif %}
+          {% if task.deadline %}
+            <span class="meta-chip">📅 {{ task.deadline.strftime('%d %b %Y %H:%M') }}</span>
+          {% endif %}
+        {% endif %}
+        {% if not task.is_done %}
+          <form action="{{ url_for('complete_task', task_id=task.id) }}" method="POST" style="display:inline">
+            <button class="ph-btn ph-btn-ghost" style="padding:6px 14px;font-size:12px;">✓ Mark Done</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Note list -->
+    {% for note in task.notes %}
+      <div class="note-card">
+        <div class="note-top">
+          <span class="note-type-badge">{{ note.note_type }}</span>
+          <form action="{{ url_for('delete_note', note_id=note.id) }}" method="POST" style="display:inline">
+            <button class="note-del-btn" title="Delete note">✕</button>
+          </form>
+        </div>
+
+        {% if note.note_type == 'checklist' %}
+          {% for text, checked in note.items() %}
+            <div class="checklist-item">
+              <form action="{{ url_for('toggle_checklist', note_id=note.id, item_index=loop.index0) }}"
+                    method="POST" style="display:inline">
+                <button type="submit" class="cl-toggle">
+                  {% if checked %}☑{% else %}☐{% endif %}
+                </button>
+              </form>
+              <span class="cl-text {% if checked %}checked{% endif %}">{{ text }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="note-text">{{ note.content }}</p>
+        {% endif %}
+      </div>
+    {% else %}
+      <div style="padding:32px 20px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;">
+        No notes yet. Add one below.
+      </div>
+    {% endfor %}
+
+    <!-- Add note form -->
+    <div class="add-note-form">
+      <form action="{{ url_for('create_note', task_id=task.id) }}" method="POST">
+        <div class="toggle-row" style="margin-bottom:10px;">
+          <label class="toggle-label">
+            <input type="radio" name="note_type" value="text" checked>
+            <span class="toggle-pill">📝 Text</span>
+          </label>
+          <label class="toggle-label">
+            <input type="radio" name="note_type" value="checklist">
+            <span class="toggle-pill">✅ Checklist</span>
+          </label>
+        </div>
+        <textarea name="content" placeholder="Text note: write anything.&#10;Checklist: one item per line." required></textarea>
+        <button type="submit" class="ph-btn ph-btn-primary" style="width:100%;margin-top:10px;">Add Note</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── POMODORO SIDE PANEL ── -->
+  <div class="panel" style="max-width:360px;">
+    <div class="panel-header">
+      <span class="panel-dot dot-red"></span>
+      <span class="panel-title">Pomodoro Sessions</span>
+    </div>
+
+    <div style="padding:16px 20px;">
+      <form action="{{ url_for('start_pomodoro', task_id=task.id) }}" method="POST">
+        <div class="slider-group" style="margin-bottom:14px;">
+          <div class="slider-row">
+            <span class="slider-label">Duration</span>
+            <span class="slider-val" id="durVal">25 min</span>
+          </div>
+          <input type="range" id="durSlider" name="duration" min="5" max="90" step="5" value="25"
+                 oninput="document.getElementById('durVal').textContent=this.value+' min'">
+        </div>
+        <div class="preset-grid" style="margin-bottom:14px;">
+          <button type="button" class="preset-btn" onclick="setDur(25)">
+            <span class="preset-name">Classic</span>25 min
+          </button>
+          <button type="button" class="preset-btn" onclick="setDur(50)">
+            <span class="preset-name">Deep Work</span>50 min
+          </button>
+          <button type="button" class="preset-btn" onclick="setDur(5)">
+            <span class="preset-name">Break</span>5 min
+          </button>
+        </div>
+        <button type="submit" class="ph-btn ph-btn-danger" style="width:100%;">🍅 Start Session</button>
+      </form>
+    </div>
+
+    <div class="pom-log-list">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">Session Log</div>
+      {% for s in task.sessions | sort(attribute='id', reverse=True) %}
+        <div class="log-item">
+          <span class="{{ 'log-status-done' if s.status == 'done' else 'log-status-cancel' }}">
+            {{ '✓' if s.status == 'done' else '✕' }}
+            {{ s.duration_min }} min
+          </span>
+          <span style="color:var(--muted)">
+            {{ s.started_at.strftime('%d %b %H:%M') if s.started_at else '—' }}
+          </span>
+        </div>
+      {% else %}
+        <div style="padding:16px 0;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;">No sessions yet</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function setDur(val) {
+  const slider = document.getElementById('durSlider');
+  slider.value = val;
+  document.getElementById('durVal').textContent = val + ' min';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+</script>
+{% endblock %}
