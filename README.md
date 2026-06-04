@@ -20,9 +20,9 @@ This project heavily utilizes Object-Oriented Programming:
 ## 🚀 How to Run the Project Locally
 
 **Step 1:** Open your terminal and pull the latest code:
-`git clone https://github.com/idonnonames/OOP-ToDoList.git`
-`cd OOP-ToDoList`
-`git pull origin main`
+* `git clone https://github.com/idonnonames/OOP-ToDoList.git`
+* `cd OOP-ToDoList`
+* `git pull origin main`
 
 **Step 2:** Turn on your virtual environment:
 * Windows: `venv\Scripts\activate`
