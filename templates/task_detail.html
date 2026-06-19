@@ -85,6 +85,53 @@
         <button type="submit" class="ph-btn ph-btn-primary" style="width:100%;margin-top:10px;">Add Note</button>
       </form>
     </div>
+
+    <!-- ── PROOF OF COMPLETION ── -->
+    <div class="proof-section">
+      <div class="proof-section-title">
+        📎 Proof of Completion <span style="opacity:0.5;font-size:9px;">(optional)</span>
+      </div>
+
+      <!-- Upload zone -->
+      <form action="{{ url_for('upload_proof', task_id=task.id) }}" method="POST" enctype="multipart/form-data" id="proofForm">
+        <div class="proof-upload-zone" id="uploadZone">
+          <input type="file" name="proof_file" class="proof-upload-input" id="proofInput"
+                 accept=".png,.jpg,.jpeg,.gif,.webp,.bmp,.pdf"
+                 onchange="document.getElementById('proofForm').submit()">
+          <div class="proof-upload-icon">📤</div>
+          <div class="proof-upload-text">
+            Drop file here or <strong>click to browse</strong><br>
+            <span style="font-size:9px;opacity:0.6;">Images & PDF up to 10 MB</span>
+          </div>
+        </div>
+      </form>
+
+      <!-- Proof gallery -->
+      {% if task.proofs %}
+        <div class="proof-gallery">
+          {% for proof in task.proofs | sort(attribute='id', reverse=True) %}
+            <div class="proof-item">
+              {% if proof.is_image() %}
+                <a href="{{ url_for('static', filename='uploads/' + proof.filename) }}" target="_blank">
+                  <img class="proof-thumb" src="{{ url_for('static', filename='uploads/' + proof.filename) }}" alt="{{ proof.original_name }}">
+                </a>
+              {% else %}
+                <a href="{{ url_for('static', filename='uploads/' + proof.filename) }}" target="_blank" style="text-decoration:none;">
+                  <div class="proof-file-icon">
+                    📄
+                    <span class="proof-file-ext">{{ proof.original_name.rsplit('.', 1)[-1] }}</span>
+                  </div>
+                </a>
+              {% endif %}
+              <div class="proof-name" title="{{ proof.original_name }}">{{ proof.original_name }}</div>
+              <form action="{{ url_for('delete_proof', proof_id=proof.id) }}" method="POST" style="display:inline;">
+                <button class="proof-del" title="Delete proof">✕</button>
+              </form>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
   </div>
 
   <!-- ── POMODORO SIDE PANEL ── -->
@@ -95,24 +142,34 @@
     </div>
 
     <div style="padding:16px 20px;">
-      <form action="{{ url_for('start_pomodoro', task_id=task.id) }}" method="POST">
-        <div class="slider-group" style="margin-bottom:14px;">
-          <div class="slider-row">
-            <span class="slider-label">Duration</span>
-            <span class="slider-val" id="durVal">25 min</span>
+      <form action="{{ url_for('start_pomodoro', task_id=task.id) }}" method="POST" id="pomStartForm">
+        <input type="hidden" name="duration" id="pomDuration" value="1500">
+
+        <!-- MM:SS Duration Input -->
+        <div class="time-input-group" style="margin-bottom:14px;">
+          <div class="time-input-label">
+            <span>Duration</span>
           </div>
-          <input type="range" id="durSlider" name="duration" min="5" max="90" step="5" value="25"
-                 oninput="document.getElementById('durVal').textContent=this.value+' min'">
+          <div class="time-input-row">
+            <input type="number" class="time-input" id="startMin" min="0" max="90" value="25" onchange="updateStartDuration()">
+            <span class="time-sep">:</span>
+            <input type="number" class="time-input" id="startSec" min="0" max="59" value="0" onchange="updateStartDuration()">
+            <div class="time-stepper">
+              <button type="button" class="time-step-btn" onclick="stepStartDur(1)">▲</button>
+              <button type="button" class="time-step-btn" onclick="stepStartDur(-1)">▼</button>
+            </div>
+          </div>
         </div>
+
         <div class="preset-grid" style="margin-bottom:14px;">
-          <button type="button" class="preset-btn" onclick="setDur(25)">
-            <span class="preset-name">Classic</span>25 min
+          <button type="button" class="preset-btn" onclick="setDur(25, 0, this)">
+            <span class="preset-name">Classic</span>25:00
           </button>
-          <button type="button" class="preset-btn" onclick="setDur(50)">
-            <span class="preset-name">Deep Work</span>50 min
+          <button type="button" class="preset-btn" onclick="setDur(50, 0, this)">
+            <span class="preset-name">Deep Work</span>50:00
           </button>
-          <button type="button" class="preset-btn" onclick="setDur(5)">
-            <span class="preset-name">Break</span>5 min
+          <button type="button" class="preset-btn" onclick="setDur(0, 30, this)">
+            <span class="preset-name">Quick</span>0:30
           </button>
         </div>
         <button type="submit" class="ph-btn ph-btn-danger" style="width:100%;">🍅 Start Session</button>
@@ -125,7 +182,7 @@
         <div class="log-item">
           <span class="{{ 'log-status-done' if s.status == 'done' else 'log-status-cancel' }}">
             {{ '✓' if s.status == 'done' else '✕' }}
-            {{ s.duration_min }} min
+            {{ s.format_duration() }}
           </span>
           <span style="color:var(--muted)">
             {{ s.started_at.strftime('%d %b %H:%M') if s.started_at else '—' }}
@@ -142,12 +199,62 @@
 
 {% block scripts %}
 <script>
-function setDur(val) {
-  const slider = document.getElementById('durSlider');
-  slider.value = val;
-  document.getElementById('durVal').textContent = val + ' min';
+// ── Duration helpers for start form ──
+function updateStartDuration() {
+  let m = parseInt(document.getElementById('startMin').value) || 0;
+  let s = parseInt(document.getElementById('startSec').value) || 0;
+  m = Math.max(0, Math.min(90, m));
+  s = Math.max(0, Math.min(59, s));
+  document.getElementById('startMin').value = m;
+  document.getElementById('startSec').value = s;
+  const total = Math.max(1, m * 60 + s);
+  document.getElementById('pomDuration').value = total;
+}
+
+function stepStartDur(dir) {
+  let m = parseInt(document.getElementById('startMin').value) || 0;
+  let s = parseInt(document.getElementById('startSec').value) || 0;
+  let total = Math.max(1, m * 60 + s + dir * 15);
+  total = Math.min(5400, total);
+  document.getElementById('startMin').value = Math.floor(total / 60);
+  document.getElementById('startSec').value = total % 60;
+  document.getElementById('pomDuration').value = total;
+}
+
+function setDur(m, s, btn) {
+  document.getElementById('startMin').value = m;
+  document.getElementById('startSec').value = s;
+  document.getElementById('pomDuration').value = Math.max(1, m * 60 + s);
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
+}
+
+// Init hidden field
+updateStartDuration();
+
+// ── Drag-and-drop for proof upload ──
+const uploadZone = document.getElementById('uploadZone');
+const proofInput = document.getElementById('proofInput');
+
+if (uploadZone) {
+  ['dragenter', 'dragover'].forEach(evt => {
+    uploadZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    uploadZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+    });
+  });
+  uploadZone.addEventListener('drop', (e) => {
+    if (e.dataTransfer.files.length > 0) {
+      proofInput.files = e.dataTransfer.files;
+      document.getElementById('proofForm').submit();
+    }
+  });
 }
 </script>
 {% endblock %}

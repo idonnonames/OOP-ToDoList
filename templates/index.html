@@ -97,53 +97,65 @@
 
     <div id="taskList">
       {% if not tasks %}
-        <div class="empty-state">
-          <div class="empty-icon">📋</div>
-          <p>No tasks yet. Create your first one!</p>
-        </div>
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No tasks yet. Create your first one!</p>
+      </div>
       {% endif %}
 
       {% for task in tasks %}
-        <div class="task-item {% if task.is_done %}task-done{% endif %} {% if task.task_type == 'priority' and task.is_overdue() %}task-overdue{% endif %}"
-             data-status="{{ 'done' if task.is_done else 'active' }}">
+      <div
+        class="task-item {% if task.is_done %}task-done{% endif %} {% if task.task_type == 'priority' and task.is_overdue() %}task-overdue{% endif %}"
+        data-status="{{ 'done' if task.is_done else 'active' }}">
 
-          <div class="task-left">
-            <div class="task-check {% if task.is_done %}checked{% endif %}">
-              {% if task.is_done %}✓{% endif %}
-            </div>
-            <div class="task-info">
-              <div class="task-name">{{ task.title }}</div>
-              <div class="task-meta">
-                {% if task.task_type == 'priority' %}
-                  <span class="pri-badge pri-{{ task.priority }}">{{ task.priority }}</span>
-                  {% if task.is_overdue() %}<span class="overdue-badge">overdue</span>{% endif %}
-                  {% if task.deadline %}
-                    <span class="meta-chip">📅 {{ task.deadline.strftime('%d %b') }}</span>
-                  {% endif %}
-                {% endif %}
-                {% if task.notes | length > 0 %}
-                  <span class="meta-chip">📝 {{ task.notes | length }}</span>
-                {% endif %}
-                {% if task.sessions | length > 0 %}
-                  <span class="meta-chip">🍅 {{ task.sessions | length }}</span>
-                {% endif %}
-              </div>
-            </div>
+        <div class="task-left">
+          <div class="task-check {% if task.is_done %}checked{% endif %}">
+            {% if task.is_done %}✓{% endif %}
           </div>
-
-          <div class="task-actions">
-            <a href="{{ url_for('task_detail', task_id=task.id) }}" class="act-btn act-view" title="View">↗</a>
-            {% if not task.is_done %}
-              <form action="{{ url_for('complete_task', task_id=task.id) }}" method="POST" style="display:inline">
-                <button class="act-btn act-done" title="Complete">✓</button>
-              </form>
-            {% endif %}
-            <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" style="display:inline"
-                  onsubmit="return confirm('Delete?')">
-              <button class="act-btn act-del" title="Delete">✕</button>
-            </form>
+          <div class="task-info">
+            <div class="task-name">{{ task.title }}</div>
+            <div class="task-meta">
+              {% if task.task_type == 'priority' %}
+              <span class="pri-badge pri-{{ task.priority }}">{{ task.priority }}</span>
+              {% if task.is_overdue() %}<span class="overdue-badge">overdue</span>{% endif %}
+              {% if task.deadline %}
+              <span class="meta-chip">📅 {{ task.deadline.strftime('%d %b') }}</span>
+              {% endif %}
+              {% endif %}
+              {% if task.notes | length > 0 %}
+              <span class="meta-chip">📝 {{ task.notes | length }}</span>
+              {% endif %}
+              {% if task.sessions | length > 0 %}
+              <span class="meta-chip">🍅 {{ task.sessions | length }}</span>
+              {% endif %}
+            </div>
           </div>
         </div>
+
+        <div class="task-actions">
+          <a href="{{ url_for('task_detail', task_id=task.id) }}" class="act-btn-view" title="View Details">
+            <span>View</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" width="14" height="14">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          {% if not task.is_done %}
+          <form action="{{ url_for('complete_task', task_id=task.id) }}" method="POST" style="display:inline">
+            <button class="act-btn act-done" title="Mark as Done">✓</button>
+          </form>
+          {% else %}
+          <form action="{{ url_for('uncomplete_task', task_id=task.id) }}" method="POST" style="display:inline">
+            <button class="act-btn act-undo" title="Undo — Mark as Active">↩</button>
+          </form>
+          {% endif %}
+          <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" style="display:inline"
+            onsubmit="return confirm('Delete this task?')">
+            <button class="act-btn act-del" title="Delete">✕</button>
+          </form>
+        </div>
+      </div>
       {% endfor %}
     </div>
   </div>
@@ -153,41 +165,41 @@
 
 {% block scripts %}
 <script>
-// Live clock
-function updateClock() {
-  const now = new Date();
-  document.getElementById('liveClock').textContent =
-    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('liveDate').textContent =
-    now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-}
-setInterval(updateClock, 1000);
-updateClock();
+  // Live clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveClock').textContent =
+      now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('liveDate').textContent =
+      now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
 
-// Toggle priority fields
-function togglePriority(show) {
-  document.getElementById('priorityFields').style.display = show ? 'block' : 'none';
-}
+  // Toggle priority fields
+  function togglePriority(show) {
+    document.getElementById('priorityFields').style.display = show ? 'block' : 'none';
+  }
 
-// Priority button highlight
-document.querySelectorAll('.pri-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('active'));
+  // Priority button highlight
+  document.querySelectorAll('.pri-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pri-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Task filter
+  function filterTasks(filter, btn) {
+    document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-  });
-});
-
-// Task filter
-function filterTasks(filter, btn) {
-  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.task-item').forEach(item => {
-    if (filter === 'all') {
-      item.style.display = '';
-    } else {
-      item.style.display = item.dataset.status === filter ? '' : 'none';
-    }
-  });
-}
+    document.querySelectorAll('.task-item').forEach(item => {
+      if (filter === 'all') {
+        item.style.display = '';
+      } else {
+        item.style.display = item.dataset.status === filter ? '' : 'none';
+      }
+    });
+  }
 </script>
 {% endblock %}

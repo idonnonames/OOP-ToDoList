@@ -1,6 +1,16 @@
+import os
+import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash
-from models import db, Task, PriorityTask, Note, ChecklistNote, PomodoroSession
+from models import db, Task, PriorityTask, Note, ChecklistNote, PomodoroSession, ProofFile
 from datetime import datetime
+from werkzeug.utils import secure_filename
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'pdf'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def create_app():
@@ -8,6 +18,11 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///productivity.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = "change-this-in-production"
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
+
+    upload_folder = os.path.join(app.root_path, "static", "uploads")
+    os.makedirs(upload_folder, exist_ok=True)
+    app.config["UPLOAD_FOLDER"] = upload_folder
 
     db.init_app(app)
 
@@ -18,9 +33,10 @@ def create_app():
     @app.route("/")
     def index():
         tasks    = Task.query.order_by(Task.created_at.desc()).all()
-        # Analytics: total logged focus minutes across all finished sessions
+        # Analytics: total logged focus seconds across all finished sessions
         sessions = PomodoroSession.query.filter_by(_status="done").all()
-        total_focus = sum(s.duration_min for s in sessions)
+        total_focus_sec = sum(s.duration_sec for s in sessions)
+        total_focus = round(total_focus_sec / 60, 1)
         return render_template("index.html", tasks=tasks, total_focus=total_focus)
 
     # ── TASK ENGINE ───────────────────────────────────────────────────────
@@ -59,9 +75,22 @@ def create_app():
         flash(f"Task '{task.title}' marked as done.", "success")
         return redirect(url_for("index"))
 
+    @app.route("/tasks/<int:task_id>/uncomplete", methods=["POST"])
+    def uncomplete_task(task_id):
+        task = Task.query.get_or_404(task_id)
+        task.uncomplete()
+        db.session.commit()
+        flash(f"Task '{task.title}' marked as active again.", "info")
+        return redirect(url_for("index"))
+
     @app.route("/tasks/<int:task_id>/delete", methods=["POST"])
     def delete_task(task_id):
         task = Task.query.get_or_404(task_id)
+        # Clean up proof files from disk
+        for proof in task.proofs:
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], proof.filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
         db.session.delete(task)
         db.session.commit()
         flash("Task deleted.", "info")
@@ -112,9 +141,9 @@ def create_app():
     # ── TIME ENGINE ───────────────────────────────────────────────────────
     @app.route("/tasks/<int:task_id>/pomodoro/start", methods=["POST"])
     def start_pomodoro(task_id):
-        task     = Task.query.get_or_404(task_id)
-        duration = int(request.form.get("duration", 25))
-        session  = PomodoroSession(task=task, duration_min=duration)
+        task        = Task.query.get_or_404(task_id)
+        duration_sec = int(request.form.get("duration", 1500))  # default 25 min in seconds
+        session     = PomodoroSession(task=task, duration_sec=duration_sec)
         session.start()
         db.session.add(session)
         db.session.commit()
@@ -131,8 +160,55 @@ def create_app():
         if session.status == "running":
             session.finish()
             db.session.commit()
-            flash(f"Pomodoro done! Logged {session.duration_min} min.", "success")
+            flash(f"Pomodoro done! Logged {session.format_duration()}.", "success")
         return redirect(url_for("task_detail", task_id=session.task_id))
+
+    # ── PROOF ENGINE ─────────────────────────────────────────────────────
+    @app.route("/tasks/<int:task_id>/upload", methods=["POST"])
+    def upload_proof(task_id):
+        task = Task.query.get_or_404(task_id)
+
+        if "proof_file" not in request.files:
+            flash("No file selected.", "danger")
+            return redirect(url_for("task_detail", task_id=task_id))
+
+        file = request.files["proof_file"]
+        if file.filename == "":
+            flash("No file selected.", "danger")
+            return redirect(url_for("task_detail", task_id=task_id))
+
+        if not allowed_file(file.filename):
+            flash("File type not allowed. Use images or PDF.", "danger")
+            return redirect(url_for("task_detail", task_id=task_id))
+
+        # Save with UUID filename to avoid collisions
+        original = secure_filename(file.filename)
+        ext = original.rsplit('.', 1)[1].lower()
+        stored_name = f"{uuid.uuid4().hex}.{ext}"
+        file.save(os.path.join(app.config["UPLOAD_FOLDER"], stored_name))
+
+        proof = ProofFile(
+            task=task,
+            filename=stored_name,
+            original_name=original,
+        )
+        db.session.add(proof)
+        db.session.commit()
+        flash(f"Proof '{original}' uploaded.", "success")
+        return redirect(url_for("task_detail", task_id=task_id))
+
+    @app.route("/proofs/<int:proof_id>/delete", methods=["POST"])
+    def delete_proof(proof_id):
+        proof = ProofFile.query.get_or_404(proof_id)
+        task_id = proof.task_id
+        # Remove file from disk
+        filepath = os.path.join(app.config["UPLOAD_FOLDER"], proof.filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        db.session.delete(proof)
+        db.session.commit()
+        flash("Proof deleted.", "info")
+        return redirect(url_for("task_detail", task_id=task_id))
 
     return app
 

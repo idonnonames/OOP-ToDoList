@@ -4,40 +4,86 @@
 {% block content %}
 <a href="{{ url_for('task_detail', task_id=session.task_id) }}" class="back-btn">← Back to Task</a>
 
-<div class="pom-container">
+<div class="pom-layout">
 
-  <!-- ── MAIN TIMER ── -->
+  <!-- ══ TIMER HERO ══ -->
   <div class="pom-panel">
     <div class="pom-task-label">
       Focusing on
       <div class="pom-task-name">{{ session.task.title }}</div>
     </div>
 
-    <div class="pom-clock-area">
-      <!-- SVG Ring -->
-      <div class="pom-ring-wrap">
+    <div class="pom-clock-area" id="clockArea">
+      <!-- SVG Ring with gradient -->
+      <div class="pom-ring-wrap" id="ringWrap">
         <svg viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#f5a623"/>
+              <stop offset="100%" style="stop-color:#e67e00"/>
+            </linearGradient>
+            <linearGradient id="ringGradientBreak" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#2ed573"/>
+              <stop offset="100%" style="stop-color:#1ea55a"/>
+            </linearGradient>
+          </defs>
+          <circle class="pom-ring-track" cx="50" cy="50" r="44"/>
           <circle class="pom-ring-bg" cx="50" cy="50" r="44"/>
           <circle class="pom-ring-progress" id="ringProgress" cx="50" cy="50" r="44"
                   stroke-dasharray="276.46"
                   stroke-dashoffset="0"/>
         </svg>
         <div class="pom-time-display">
-          <div class="pom-time" id="timerDisplay">{{ '%02d' % session.duration_min }}:00</div>
-          <div class="pom-phase" id="phaseLabel">FOCUS</div>
+          <div class="pom-time" id="timerDisplay">{% if session.duration_sec >= 3600 %}{{ '%02d' % (session.duration_sec // 3600) }}:{% endif %}{{ '%02d' % ((session.duration_sec % 3600) // 60) }}:{{ '%02d' % (session.duration_sec % 60) }}</div>
+          <div class="pom-phase-pill phase-focus" id="phasePill">
+            <span id="phaseIcon">🔥</span>
+            <span id="phaseLabel">FOCUS</span>
+          </div>
         </div>
       </div>
 
-      <!-- Controls -->
-      <div class="pom-controls">
-        <button class="pom-ctrl-btn" id="skipBtn" title="Skip" onclick="skipTimer()">⏭</button>
-        <button class="pom-ctrl-btn pom-play" id="playPauseBtn" onclick="toggleTimer()">▶</button>
-        <button class="pom-ctrl-btn" id="resetBtn" title="Reset" onclick="resetTimer()">↺</button>
+      <!-- Session progress dots -->
+      <div class="pom-session-dots" id="sessionDots">
+        <div class="pom-dot"></div>
+        <div class="pom-dot"></div>
+        <div class="pom-dot"></div>
+        <div class="pom-dot"></div>
       </div>
+
+      <!-- Glassmorphism Controls -->
+      <div class="pom-controls">
+        <button class="pom-ctrl-glass" id="skipBtn" title="Skip phase" onclick="skipTimer()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+            <line x1="19" y1="5" x2="19" y2="19"></line>
+          </svg>
+        </button>
+        <button class="pom-ctrl-glass pom-play" id="playPauseBtn" onclick="toggleTimer()">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <polygon points="6 3 20 12 6 21 6 3"></polygon>
+          </svg>
+        </button>
+        <button class="pom-ctrl-glass" id="resetBtn" title="Reset timer" onclick="resetTimer()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Finish Session button -->
+      <button class="pom-finish-btn" id="finishBtn" onclick="showFinishModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+        </svg>
+        Finish Session
+      </button>
     </div>
   </div>
 
-  <!-- ── CUSTOMIZER ── -->
+  <!-- ══ CUSTOMIZER PANEL ══ -->
   <div class="pom-customizer">
     <div class="customizer-header">
       <span style="color:var(--amber)">⚙</span>
@@ -45,47 +91,114 @@
     </div>
     <div class="customizer-body">
 
-      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Presets</div>
+      <div class="section-label">Presets</div>
       <div class="preset-grid" style="margin-bottom:20px;">
-        <button class="preset-btn active" onclick="applyPreset(25, 5, 15, this)">
-          <span class="preset-name">Classic</span>25/5/15
+        <button class="preset-btn active" onclick="applyPreset(0,25,0, 0,5,0, 0,15,0, this)">
+          <span class="preset-name">Classic</span>
+          <span class="preset-times">25:00 / 5:00</span>
         </button>
-        <button class="preset-btn" onclick="applyPreset(50, 10, 30, this)">
-          <span class="preset-name">Deep Work</span>50/10/30
+        <button class="preset-btn" onclick="applyPreset(0,50,0, 0,10,0, 0,30,0, this)">
+          <span class="preset-name">Deep Work</span>
+          <span class="preset-times">50:00 / 10:00</span>
         </button>
-        <button class="preset-btn" onclick="applyPreset(15, 3, 10, this)">
-          <span class="preset-name">Sprints</span>15/3/10
+        <button class="preset-btn" onclick="applyPreset(0,15,0, 0,3,0, 0,10,0, this)">
+          <span class="preset-name">Sprints</span>
+          <span class="preset-times">15:00 / 3:00</span>
+        </button>
+        <button class="preset-btn" onclick="applyPreset(1,30,0, 0,15,0, 0,30,0, this)">
+          <span class="preset-name">Marathon</span>
+          <span class="preset-times">1:30:00 / 15:00</span>
         </button>
       </div>
 
-      <div class="slider-group">
-        <div class="slider-row">
-          <span class="slider-label">Focus</span>
-          <span class="slider-val" id="focusVal">{{ session.duration_min }} min</span>
+      <!-- Focus Duration -->
+      <div class="time-input-group">
+        <div class="time-input-label">
+          <span>🔥 Focus</span>
         </div>
-        <input type="range" id="focusSlider" min="5" max="90" step="5" value="{{ session.duration_min }}"
-               oninput="updateSlider('focus')">
+        <div class="time-input-row">
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('focusHr', 1)">▲</button>
+            <input type="number" class="time-input" id="focusHr" min="0" max="4" value="{{ session.duration_sec // 3600 }}" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('focusHr', -1)">▼</button>
+            <span class="time-unit-label">hr</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('focusMin', 1)">▲</button>
+            <input type="number" class="time-input" id="focusMin" min="0" max="59" value="{{ (session.duration_sec % 3600) // 60 }}" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('focusMin', -1)">▼</button>
+            <span class="time-unit-label">min</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('focusSec', 1)">▲</button>
+            <input type="number" class="time-input" id="focusSec" min="0" max="59" value="{{ session.duration_sec % 60 }}" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('focusSec', -1)">▼</button>
+            <span class="time-unit-label">sec</span>
+          </div>
+        </div>
       </div>
 
-      <div class="slider-group">
-        <div class="slider-row">
-          <span class="slider-label">Short Break</span>
-          <span class="slider-val" id="shortVal">5 min</span>
+      <!-- Short Break -->
+      <div class="time-input-group">
+        <div class="time-input-label">
+          <span>☕ Short Break</span>
         </div>
-        <input type="range" id="shortSlider" min="1" max="20" step="1" value="5"
-               oninput="updateSlider('short')">
+        <div class="time-input-row">
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('shortHr', 1)">▲</button>
+            <input type="number" class="time-input" id="shortHr" min="0" max="2" value="0" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('shortHr', -1)">▼</button>
+            <span class="time-unit-label">hr</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('shortMin', 1)">▲</button>
+            <input type="number" class="time-input" id="shortMin" min="0" max="59" value="5" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('shortMin', -1)">▼</button>
+            <span class="time-unit-label">min</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('shortSec', 1)">▲</button>
+            <input type="number" class="time-input" id="shortSec" min="0" max="59" value="0" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('shortSec', -1)">▼</button>
+            <span class="time-unit-label">sec</span>
+          </div>
+        </div>
       </div>
 
-      <div class="slider-group">
-        <div class="slider-row">
-          <span class="slider-label">Long Break</span>
-          <span class="slider-val" id="longVal">15 min</span>
+      <!-- Long Break -->
+      <div class="time-input-group">
+        <div class="time-input-label">
+          <span>🌿 Long Break</span>
         </div>
-        <input type="range" id="longSlider" min="5" max="45" step="5" value="15"
-               oninput="updateSlider('long')">
+        <div class="time-input-row">
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('longHr', 1)">▲</button>
+            <input type="number" class="time-input" id="longHr" min="0" max="2" value="0" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('longHr', -1)">▼</button>
+            <span class="time-unit-label">hr</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('longMin', 1)">▲</button>
+            <input type="number" class="time-input" id="longMin" min="0" max="59" value="15" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('longMin', -1)">▼</button>
+            <span class="time-unit-label">min</span>
+          </div>
+          <span class="time-sep">:</span>
+          <div class="time-unit">
+            <button class="time-step-btn" onclick="stepUnit('longSec', 1)">▲</button>
+            <input type="number" class="time-input" id="longSec" min="0" max="59" value="0" onchange="onTimeInput()">
+            <button class="time-step-btn" onclick="stepUnit('longSec', -1)">▼</button>
+            <span class="time-unit-label">sec</span>
+          </div>
+        </div>
       </div>
 
-      <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;">Alert Sound</div>
+      <div class="section-label" style="margin-top:16px;">Alert Sound</div>
       <div class="sound-row">
         <label class="sound-opt active" id="snd-bell">
           <input type="radio" name="sound" value="bell" checked> 🔔 Bell
@@ -106,6 +219,20 @@
   </form>
 
 </div>
+
+<!-- ── CONFIRMATION MODAL ── -->
+<div class="modal-overlay" id="finishModal">
+  <div class="modal-card">
+    <div class="modal-icon">🍅</div>
+    <div class="modal-title">Finish Session?</div>
+    <div class="modal-text">Are you sure you want to finish your Pomodoro session? Your progress will be logged.</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-confirm" onclick="confirmFinish()">Yes, Finish</button>
+      <button class="modal-btn modal-btn-cancel" onclick="hideFinishModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -113,21 +240,24 @@
 // ── State ──────────────────────────────────────────
 const TOTAL_DASH = 276.46;
 const ring       = document.getElementById('ringProgress');
+const clockArea  = document.getElementById('clockArea');
+const ringWrap   = document.getElementById('ringWrap');
+
 let phases       = ['FOCUS', 'SHORT BREAK', 'LONG BREAK'];
+let phaseIcons   = ['🔥', '☕', '🌿'];
 let phase        = 0; // 0=focus, 1=short, 2=long
 let pomCount     = 0;
 let isRunning    = false;
 let interval     = null;
 let totalSecs    = 0;
 let remaining    = 0;
-let hasFocusEnded = false;
 
-// Read from sliders
+// Read durations from HH:MM:SS inputs (returns seconds)
 function getDurations() {
   return {
-    focus: parseInt(document.getElementById('focusSlider').value) * 60,
-    short: parseInt(document.getElementById('shortSlider').value) * 60,
-    long:  parseInt(document.getElementById('longSlider').value) * 60,
+    focus: Math.max(1, parseInt(document.getElementById('focusHr').value||0) * 3600 + parseInt(document.getElementById('focusMin').value||0) * 60 + parseInt(document.getElementById('focusSec').value||0)),
+    short: Math.max(1, parseInt(document.getElementById('shortHr').value||0) * 3600 + parseInt(document.getElementById('shortMin').value||0) * 60 + parseInt(document.getElementById('shortSec').value||0)),
+    long:  Math.max(1, parseInt(document.getElementById('longHr').value||0) * 3600 + parseInt(document.getElementById('longMin').value||0) * 60 + parseInt(document.getElementById('longSec').value||0)),
   };
 }
 
@@ -135,34 +265,75 @@ function initTimer() {
   const d  = getDurations();
   totalSecs = phase === 0 ? d.focus : phase === 1 ? d.short : d.long;
   remaining = totalSecs;
-  hasFocusEnded = false;
   render();
+  updatePhasePill();
 }
 
 function render() {
-  const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+  const h = Math.floor(remaining / 3600);
+  const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
   const s = String(remaining % 60).padStart(2, '0');
-  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
-  document.getElementById('phaseLabel').textContent   = phases[phase];
+  document.getElementById('timerDisplay').textContent = h > 0 ? `${String(h).padStart(2,'0')}:${m}:${s}` : `${m}:${s}`;
 
-  const progress = remaining / totalSecs;
+  const progress = totalSecs > 0 ? remaining / totalSecs : 1;
   const offset   = TOTAL_DASH * (1 - progress);
   ring.style.strokeDashoffset = offset;
 
-  // Color warning in last 20%
+  // Color: warning in last 20% of focus, green for breaks
   ring.classList.toggle('pom-warning', progress < 0.2 && phase === 0);
+  ring.classList.toggle('pom-break', phase !== 0);
+
+  // Update ring gradient
+  if (phase !== 0) {
+    ring.style.stroke = 'url(#ringGradientBreak)';
+  } else if (progress < 0.2) {
+    ring.style.stroke = '';  // let CSS .pom-warning handle it
+  } else {
+    ring.style.stroke = 'url(#ringGradient)';
+  }
+}
+
+function updatePhasePill() {
+  const pill = document.getElementById('phasePill');
+  document.getElementById('phaseLabel').textContent = phases[phase];
+  document.getElementById('phaseIcon').textContent  = phaseIcons[phase];
+
+  pill.classList.remove('phase-focus', 'phase-break');
+  pill.classList.add(phase === 0 ? 'phase-focus' : 'phase-break');
+
+  // Time text glow color
+  const timeEl = document.getElementById('timerDisplay');
+  if (phase === 0) {
+    timeEl.style.textShadow = '0 0 20px rgba(245,166,35,0.35)';
+  } else {
+    timeEl.style.textShadow = '0 0 20px rgba(46,213,115,0.35)';
+  }
+}
+
+function updateSessionDots() {
+  const dots = document.querySelectorAll('.pom-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('filled', i < pomCount % 4 || (pomCount > 0 && pomCount % 4 === 0 && i < 4));
+  });
+  // Reset dots after 4
+  if (pomCount > 0 && pomCount % 4 === 0) {
+    dots.forEach(d => d.classList.add('filled'));
+  }
 }
 
 function toggleTimer() {
   const btn = document.getElementById('playPauseBtn');
+  const playIconSvg = document.getElementById('playIcon');
   if (isRunning) {
     clearInterval(interval);
     isRunning = false;
-    btn.textContent = '▶';
+    clockArea.classList.remove('is-active');
+    playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
   } else {
     if (remaining === 0) initTimer();
     isRunning = true;
-    btn.textContent = '⏸';
+    clockArea.classList.add('is-active');
+    playIconSvg.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
     interval = setInterval(tick, 1000);
   }
 }
@@ -171,7 +342,9 @@ function tick() {
   if (remaining <= 0) {
     clearInterval(interval);
     isRunning = false;
-    document.getElementById('playPauseBtn').textContent = '▶';
+    clockArea.classList.remove('is-active');
+    const playIconSvg = document.getElementById('playIcon');
+    playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
     onPhaseEnd();
     return;
   }
@@ -181,10 +354,15 @@ function tick() {
 
 function onPhaseEnd() {
   playAlert();
+
+  // Phase transition animation
+  ringWrap.classList.add('phase-transition');
+  setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
+
   if (phase === 0) {
     // Focus just ended — log to Flask
-    hasFocusEnded = true;
     pomCount++;
+    updateSessionDots();
     document.getElementById('finishForm').submit();
   }
   // Advance phase: focus→short, short→long (every 4), long→focus
@@ -199,7 +377,14 @@ function onPhaseEnd() {
 function skipTimer() {
   clearInterval(interval);
   isRunning = false;
-  document.getElementById('playPauseBtn').textContent = '▶';
+  clockArea.classList.remove('is-active');
+  const playIconSvg = document.getElementById('playIcon');
+  playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+
+  // Phase transition animation
+  ringWrap.classList.add('phase-transition');
+  setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
+
   if (phase === 0 && (totalSecs - remaining) > 5) {
     // Partial focus — still log it
     document.getElementById('finishForm').submit();
@@ -211,26 +396,51 @@ function skipTimer() {
 function resetTimer() {
   clearInterval(interval);
   isRunning = false;
-  document.getElementById('playPauseBtn').textContent = '▶';
+  clockArea.classList.remove('is-active');
+  const playIconSvg = document.getElementById('playIcon');
+  playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
   initTimer();
 }
 
-// ── Sliders ───────────────────────────────────────
-function updateSlider(which) {
-  const ids = { focus:'focusVal', short:'shortVal', long:'longVal' };
-  const sl  = document.getElementById(which + 'Slider');
-  document.getElementById(ids[which]).textContent = sl.value + ' min';
+// ── Time Inputs ──────────────────────────────────
+function onTimeInput() {
+  // Clamp values
+  ['focusHr','focusMin','focusSec','shortHr','shortMin','shortSec','longHr','longMin','longSec'].forEach(id => {
+    const el = document.getElementById(id);
+    let v = parseInt(el.value) || 0;
+    if (id.endsWith('Sec')) v = Math.max(0, Math.min(59, v));
+    if (id.endsWith('Min')) v = Math.max(0, Math.min(59, v));
+    if (id.endsWith('Hr'))  v = Math.max(0, Math.min(4, v));
+    el.value = v;
+  });
   if (!isRunning) initTimer();
 }
 
+function stepUnit(inputId, dir) {
+  const el = document.getElementById(inputId);
+  let v = parseInt(el.value) || 0;
+  v += dir;
+
+  // Get min/max from the input's own attributes
+  const min = parseInt(el.min) || 0;
+  const max = parseInt(el.max) || 59;
+  v = Math.max(min, Math.min(max, v));
+
+  el.value = v;
+  onTimeInput();
+}
+
 // ── Presets ───────────────────────────────────────
-function applyPreset(f, s, l, btn) {
-  document.getElementById('focusSlider').value = f;
-  document.getElementById('shortSlider').value = s;
-  document.getElementById('longSlider').value  = l;
-  document.getElementById('focusVal').textContent = f + ' min';
-  document.getElementById('shortVal').textContent = s + ' min';
-  document.getElementById('longVal').textContent  = l + ' min';
+function applyPreset(fh, fm, fs, sh, sm, ss, lh, lm, ls, btn) {
+  document.getElementById('focusHr').value  = fh;
+  document.getElementById('focusMin').value = fm;
+  document.getElementById('focusSec').value = fs;
+  document.getElementById('shortHr').value  = sh;
+  document.getElementById('shortMin').value = sm;
+  document.getElementById('shortSec').value = ss;
+  document.getElementById('longHr').value   = lh;
+  document.getElementById('longMin').value  = lm;
+  document.getElementById('longSec').value  = ls;
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   if (!isRunning) initTimer();
@@ -268,7 +478,27 @@ function playAlert() {
   } catch(e) {}
 }
 
+// ── Finish Modal ─────────────────────────────────
+function showFinishModal() {
+  document.getElementById('finishModal').classList.add('is-open');
+}
+function hideFinishModal() {
+  document.getElementById('finishModal').classList.remove('is-open');
+}
+function confirmFinish() {
+  document.getElementById('finishForm').submit();
+}
+// Close modal on overlay click
+document.getElementById('finishModal').addEventListener('click', function(e) {
+  if (e.target === this) hideFinishModal();
+});
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') hideFinishModal();
+});
+
 // ── Init ──────────────────────────────────────────
 initTimer();
+updateSessionDots();
 </script>
 {% endblock %}

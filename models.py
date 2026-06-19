@@ -24,6 +24,9 @@ class Task(db.Model):
     # Aggregation: a Task IS LINKED TO many PomodoroSessions
     sessions    = db.relationship("PomodoroSession", back_populates="task",
                                   cascade="all, delete-orphan")
+    # Composition: a Task HAS many ProofFiles
+    proofs      = db.relationship("ProofFile", back_populates="task",
+                                  cascade="all, delete-orphan")
 
     __mapper_args__ = {
         "polymorphic_on":       task_type,
@@ -32,6 +35,9 @@ class Task(db.Model):
 
     def complete(self):
         self.is_done = True
+
+    def uncomplete(self):
+        self.is_done = False
 
     def __repr__(self):
         return f"<Task id={self.id} title={self.title!r} done={self.is_done}>"
@@ -154,7 +160,7 @@ class PomodoroSession(db.Model):
 
     id           = db.Column(db.Integer, primary_key=True)
     task_id      = db.Column(db.Integer, db.ForeignKey("tasks.id"), nullable=False)
-    duration_min = db.Column(db.Integer, default=25)
+    duration_sec = db.Column(db.Integer, default=1500)  # stored in seconds (25 min = 1500)
     started_at   = db.Column(db.DateTime, nullable=True)
     ended_at     = db.Column(db.DateTime, nullable=True)
 
@@ -167,6 +173,11 @@ class PomodoroSession(db.Model):
     @property
     def status(self):
         return self._status
+
+    @property
+    def duration_min(self):
+        """Backward-compatible property: returns minutes (rounded)."""
+        return round(self.duration_sec / 60, 1)
 
     def start(self):
         current = self._status or "idle"
@@ -192,6 +203,41 @@ class PomodoroSession(db.Model):
             return round(delta.total_seconds() / 60, 1)
         return 0
 
+    def format_duration(self):
+        """Human-readable duration string."""
+        m, s = divmod(self.duration_sec, 60)
+        if s == 0:
+            return f"{m}m"
+        return f"{m}m {s}s"
+
     def __repr__(self):
         return (f"<PomodoroSession id={self.id} task_id={self.task_id} "
-                f"status={self._status} dur={self.duration_min}min>")
+                f"status={self._status} dur={self.duration_sec}s>")
+
+
+# ─────────────────────────────────────────────
+#  PROOF ENGINE  (Composition)
+# ─────────────────────────────────────────────
+
+class ProofFile(db.Model):
+    """
+    Stores a proof-of-completion file uploaded by the user.
+    Linked to a Task via Composition.
+    """
+    __tablename__ = "proof_files"
+
+    id            = db.Column(db.Integer, primary_key=True)
+    task_id       = db.Column(db.Integer, db.ForeignKey("tasks.id"), nullable=False)
+    filename      = db.Column(db.String(255), nullable=False)   # stored UUID filename
+    original_name = db.Column(db.String(255), nullable=False)   # user's original filename
+    uploaded_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    task          = db.relationship("Task", back_populates="proofs")
+
+    def is_image(self):
+        """Check if the file is an image based on extension."""
+        ext = self.original_name.rsplit('.', 1)[-1].lower() if '.' in self.original_name else ''
+        return ext in ('png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp')
+
+    def __repr__(self):
+        return f"<ProofFile id={self.id} task_id={self.task_id} file={self.original_name!r}>"
