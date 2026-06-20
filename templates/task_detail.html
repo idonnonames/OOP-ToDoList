@@ -7,7 +7,7 @@
 <div class="detail-grid">
 
   <!-- ── NOTES PANEL ── -->
-  <div class="panel">
+  <div class="lg-panel">
     <div class="panel-header">
       <span class="panel-dot dot-blue"></span>
       <span class="panel-title">Notes</span>
@@ -15,7 +15,7 @@
 
     <div class="detail-header">
       <div class="detail-title">
-        {% if task.is_done %}<s style="color:var(--muted)">{% endif %}
+        {% if task.is_done %}<s style="color:var(--text-quaternary)">{% endif %}
         {{ task.title }}
         {% if task.is_done %}</s>{% endif %}
       </div>
@@ -30,13 +30,12 @@
         {% endif %}
         {% if not task.is_done %}
           <form action="{{ url_for('complete_task', task_id=task.id) }}" method="POST" style="display:inline">
-            <button class="ph-btn ph-btn-ghost" style="padding:6px 14px;font-size:12px;">✓ Mark Done</button>
+            <button class="lg-btn lg-btn-ghost" style="padding:6px 14px;font-size:12px;">✓ Mark Done</button>
           </form>
         {% endif %}
       </div>
     </div>
 
-    <!-- Note list -->
     {% for note in task.notes %}
       <div class="note-card">
         <div class="note-top">
@@ -63,7 +62,7 @@
         {% endif %}
       </div>
     {% else %}
-      <div style="padding:32px 20px; text-align:center; color:var(--muted); font-family:var(--mono); font-size:12px;">
+      <div style="padding:32px 20px;text-align:center;color:var(--text-quaternary);font-size:13px;">
         No notes yet. Add one below.
       </div>
     {% endfor %}
@@ -81,8 +80,8 @@
             <span class="toggle-pill">✅ Checklist</span>
           </label>
         </div>
-        <textarea name="content" placeholder="Text note: write anything.&#10;Checklist: one item per line." required></textarea>
-        <button type="submit" class="ph-btn ph-btn-primary" style="width:100%;margin-top:10px;">Add Note</button>
+        <textarea name="content" class="lg-input" placeholder="Text note: write anything.&#10;Checklist: one item per line." required></textarea>
+        <button type="submit" class="lg-btn lg-btn-primary" style="width:100%;margin-top:10px;">Add Note</button>
       </form>
     </div>
 
@@ -92,7 +91,6 @@
         📎 Proof of Completion <span style="opacity:0.5;font-size:9px;">(optional)</span>
       </div>
 
-      <!-- Upload zone -->
       <form action="{{ url_for('upload_proof', task_id=task.id) }}" method="POST" enctype="multipart/form-data" id="proofForm">
         <div class="proof-upload-zone" id="uploadZone">
           <input type="file" name="proof_file" class="proof-upload-input" id="proofInput"
@@ -106,7 +104,6 @@
         </div>
       </form>
 
-      <!-- Proof gallery -->
       {% if task.proofs %}
         <div class="proof-gallery">
           {% for proof in task.proofs | sort(attribute='id', reverse=True) %}
@@ -135,18 +132,17 @@
   </div>
 
   <!-- ── POMODORO SIDE PANEL ── -->
-  <div class="panel" style="max-width:360px;">
+  <div class="lg-panel" style="max-width:360px;">
     <div class="panel-header">
       <span class="panel-dot dot-red"></span>
       <span class="panel-title">Pomodoro Sessions</span>
     </div>
 
-    <div style="padding:16px 20px;">
+    <div style="padding:16px 18px;">
       <form action="{{ url_for('start_pomodoro', task_id=task.id) }}" method="POST" id="pomStartForm">
         <input type="hidden" name="duration" id="pomDuration" value="1500">
 
-        <!-- MM:SS Duration Input -->
-        <div class="time-input-group" style="margin-bottom:14px;">
+        <div class="time-input-group" style="margin-bottom:12px;">
           <div class="time-input-label">
             <span>Duration</span>
           </div>
@@ -154,42 +150,45 @@
             <input type="number" class="time-input" id="startMin" min="0" max="90" value="25" onchange="updateStartDuration()">
             <span class="time-sep">:</span>
             <input type="number" class="time-input" id="startSec" min="0" max="59" value="0" onchange="updateStartDuration()">
-            <div class="time-stepper">
+            <div style="display:flex;flex-direction:column;gap:3px;margin-left:4px;">
               <button type="button" class="time-step-btn" onclick="stepStartDur(1)">▲</button>
               <button type="button" class="time-step-btn" onclick="stepStartDur(-1)">▼</button>
             </div>
           </div>
         </div>
 
-        <div class="preset-grid" style="margin-bottom:14px;">
-          <button type="button" class="preset-btn" onclick="setDur(25, 0, this)">
+        <div class="preset-grid" style="margin-bottom:12px;">
+          <button type="button" class="preset-btn" onclick="setDur(25,0,this)">
             <span class="preset-name">Classic</span>25:00
           </button>
-          <button type="button" class="preset-btn" onclick="setDur(50, 0, this)">
+          <button type="button" class="preset-btn" onclick="setDur(50,0,this)">
             <span class="preset-name">Deep Work</span>50:00
           </button>
-          <button type="button" class="preset-btn" onclick="setDur(0, 30, this)">
+          <button type="button" class="preset-btn" onclick="setDur(15,0,this)">
+            <span class="preset-name">Sprint</span>15:00
+          </button>
+          <button type="button" class="preset-btn" onclick="setDur(0,30,this)">
             <span class="preset-name">Quick</span>0:30
           </button>
         </div>
-        <button type="submit" class="ph-btn ph-btn-danger" style="width:100%;">🍅 Start Session</button>
+        <button type="submit" class="lg-btn lg-btn-danger" style="width:100%;">🍅 Start Session</button>
       </form>
     </div>
 
-    <div class="pom-log-list">
-      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px;">Session Log</div>
+    <div class="pom-log-list" style="border-top:1px solid var(--separator);padding-top:14px;">
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;color:var(--text-quaternary);padding-bottom:8px;border-bottom:1px solid var(--separator);margin-bottom:4px;">Session Log</div>
       {% for s in task.sessions | sort(attribute='id', reverse=True) %}
         <div class="log-item">
           <span class="{{ 'log-status-done' if s.status == 'done' else 'log-status-cancel' }}">
             {{ '✓' if s.status == 'done' else '✕' }}
             {{ s.format_duration() }}
           </span>
-          <span style="color:var(--muted)">
+          <span style="color:var(--text-quaternary);font-size:11px;">
             {{ s.started_at.strftime('%d %b %H:%M') if s.started_at else '—' }}
           </span>
         </div>
       {% else %}
-        <div style="padding:16px 0;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;">No sessions yet</div>
+        <div style="padding:16px 0;text-align:center;color:var(--text-quaternary);font-size:12px;">No sessions yet</div>
       {% endfor %}
     </div>
   </div>
@@ -199,7 +198,6 @@
 
 {% block scripts %}
 <script>
-// ── Duration helpers for start form ──
 function updateStartDuration() {
   let m = parseInt(document.getElementById('startMin').value) || 0;
   let s = parseInt(document.getElementById('startSec').value) || 0;
@@ -207,8 +205,7 @@ function updateStartDuration() {
   s = Math.max(0, Math.min(59, s));
   document.getElementById('startMin').value = m;
   document.getElementById('startSec').value = s;
-  const total = Math.max(1, m * 60 + s);
-  document.getElementById('pomDuration').value = total;
+  document.getElementById('pomDuration').value = Math.max(1, m * 60 + s);
 }
 
 function stepStartDur(dir) {
@@ -229,27 +226,18 @@ function setDur(m, s, btn) {
   btn.classList.add('active');
 }
 
-// Init hidden field
 updateStartDuration();
 
-// ── Drag-and-drop for proof upload ──
 const uploadZone = document.getElementById('uploadZone');
 const proofInput = document.getElementById('proofInput');
-
 if (uploadZone) {
-  ['dragenter', 'dragover'].forEach(evt => {
-    uploadZone.addEventListener(evt, (e) => {
-      e.preventDefault();
-      uploadZone.classList.add('drag-over');
-    });
+  ['dragenter','dragover'].forEach(evt => {
+    uploadZone.addEventListener(evt, e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
   });
-  ['dragleave', 'drop'].forEach(evt => {
-    uploadZone.addEventListener(evt, (e) => {
-      e.preventDefault();
-      uploadZone.classList.remove('drag-over');
-    });
+  ['dragleave','drop'].forEach(evt => {
+    uploadZone.addEventListener(evt, e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); });
   });
-  uploadZone.addEventListener('drop', (e) => {
+  uploadZone.addEventListener('drop', e => {
     if (e.dataTransfer.files.length > 0) {
       proofInput.files = e.dataTransfer.files;
       document.getElementById('proofForm').submit();

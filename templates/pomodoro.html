@@ -7,34 +7,34 @@
 <div class="pom-layout">
 
   <!-- ══ TIMER HERO ══ -->
-  <div class="pom-panel">
+  <div class="lg-panel">
     <div class="pom-task-label">
       Focusing on
       <div class="pom-task-name">{{ session.task.title }}</div>
     </div>
 
     <div class="pom-clock-area" id="clockArea">
-      <!-- SVG Ring with gradient -->
       <div class="pom-ring-wrap" id="ringWrap">
         <svg viewBox="0 0 100 100">
           <defs>
             <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#f5a623"/>
-              <stop offset="100%" style="stop-color:#e67e00"/>
+              <stop offset="0%"   style="stop-color:#007aff"/>
+              <stop offset="100%" style="stop-color:#5856d6"/>
             </linearGradient>
             <linearGradient id="ringGradientBreak" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#2ed573"/>
-              <stop offset="100%" style="stop-color:#1ea55a"/>
+              <stop offset="0%"   style="stop-color:#34c759"/>
+              <stop offset="100%" style="stop-color:#30d158"/>
             </linearGradient>
           </defs>
           <circle class="pom-ring-track" cx="50" cy="50" r="44"/>
-          <circle class="pom-ring-bg" cx="50" cy="50" r="44"/>
           <circle class="pom-ring-progress" id="ringProgress" cx="50" cy="50" r="44"
                   stroke-dasharray="276.46"
                   stroke-dashoffset="0"/>
         </svg>
         <div class="pom-time-display">
-          <div class="pom-time" id="timerDisplay">{% if session.duration_sec >= 3600 %}{{ '%02d' % (session.duration_sec // 3600) }}:{% endif %}{{ '%02d' % ((session.duration_sec % 3600) // 60) }}:{{ '%02d' % (session.duration_sec % 60) }}</div>
+          <div class="pom-time" id="timerDisplay">
+            {% if session.duration_sec >= 3600 %}{{ '%02d' % (session.duration_sec // 3600) }}:{% endif %}{{ '%02d' % ((session.duration_sec % 3600) // 60) }}:{{ '%02d' % (session.duration_sec % 60) }}
+          </div>
           <div class="pom-phase-pill phase-focus" id="phasePill">
             <span id="phaseIcon">🔥</span>
             <span id="phaseLabel">FOCUS</span>
@@ -42,7 +42,6 @@
         </div>
       </div>
 
-      <!-- Session progress dots -->
       <div class="pom-session-dots" id="sessionDots">
         <div class="pom-dot"></div>
         <div class="pom-dot"></div>
@@ -50,7 +49,6 @@
         <div class="pom-dot"></div>
       </div>
 
-      <!-- Glassmorphism Controls -->
       <div class="pom-controls">
         <button class="pom-ctrl-glass" id="skipBtn" title="Skip phase" onclick="skipTimer()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -71,7 +69,6 @@
         </button>
       </div>
 
-      <!-- Finish Session button -->
       <button class="pom-finish-btn" id="finishBtn" onclick="showFinishModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -84,57 +81,55 @@
   </div>
 
   <!-- ══ CUSTOMIZER PANEL ══ -->
-  <div class="pom-customizer">
+  <div class="lg-panel pom-customizer">
     <div class="customizer-header">
-      <span style="color:var(--amber)">⚙</span>
+      <span style="color:var(--accent)">⚙</span>
       Timer Settings
     </div>
     <div class="customizer-body">
 
       <div class="section-label">Presets</div>
-      <div class="preset-grid" style="margin-bottom:20px;">
-        <button class="preset-btn active" onclick="applyPreset(0,25,0, 0,5,0, 0,15,0, this)">
+      <div class="preset-grid" style="margin-bottom:18px;">
+        <button class="preset-btn active" onclick="applyPreset(0,25,0,0,5,0,0,15,0,this)">
           <span class="preset-name">Classic</span>
-          <span class="preset-times">25:00 / 5:00</span>
+          <span>25:00 / 5:00</span>
         </button>
-        <button class="preset-btn" onclick="applyPreset(0,50,0, 0,10,0, 0,30,0, this)">
+        <button class="preset-btn" onclick="applyPreset(0,50,0,0,10,0,0,30,0,this)">
           <span class="preset-name">Deep Work</span>
-          <span class="preset-times">50:00 / 10:00</span>
+          <span>50:00 / 10:00</span>
         </button>
-        <button class="preset-btn" onclick="applyPreset(0,15,0, 0,3,0, 0,10,0, this)">
+        <button class="preset-btn" onclick="applyPreset(0,15,0,0,3,0,0,10,0,this)">
           <span class="preset-name">Sprints</span>
-          <span class="preset-times">15:00 / 3:00</span>
+          <span>15:00 / 3:00</span>
         </button>
-        <button class="preset-btn" onclick="applyPreset(1,30,0, 0,15,0, 0,30,0, this)">
+        <button class="preset-btn" onclick="applyPreset(1,30,0,0,15,0,0,30,0,this)">
           <span class="preset-name">Marathon</span>
-          <span class="preset-times">1:30:00 / 15:00</span>
+          <span>1:30:00 / 15:00</span>
         </button>
       </div>
 
       <!-- Focus Duration -->
       <div class="time-input-group">
-        <div class="time-input-label">
-          <span>🔥 Focus</span>
-        </div>
+        <div class="time-input-label"><span>🔥 Focus</span></div>
         <div class="time-input-row">
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('focusHr', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('focusHr',1)">▲</button>
             <input type="number" class="time-input" id="focusHr" min="0" max="4" value="{{ session.duration_sec // 3600 }}" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('focusHr', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('focusHr',-1)">▼</button>
             <span class="time-unit-label">hr</span>
           </div>
           <span class="time-sep">:</span>
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('focusMin', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('focusMin',1)">▲</button>
             <input type="number" class="time-input" id="focusMin" min="0" max="59" value="{{ (session.duration_sec % 3600) // 60 }}" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('focusMin', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('focusMin',-1)">▼</button>
             <span class="time-unit-label">min</span>
           </div>
           <span class="time-sep">:</span>
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('focusSec', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('focusSec',1)">▲</button>
             <input type="number" class="time-input" id="focusSec" min="0" max="59" value="{{ session.duration_sec % 60 }}" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('focusSec', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('focusSec',-1)">▼</button>
             <span class="time-unit-label">sec</span>
           </div>
         </div>
@@ -142,28 +137,26 @@
 
       <!-- Short Break -->
       <div class="time-input-group">
-        <div class="time-input-label">
-          <span>☕ Short Break</span>
-        </div>
+        <div class="time-input-label"><span>☕ Short Break</span></div>
         <div class="time-input-row">
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('shortHr', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('shortHr',1)">▲</button>
             <input type="number" class="time-input" id="shortHr" min="0" max="2" value="0" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('shortHr', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('shortHr',-1)">▼</button>
             <span class="time-unit-label">hr</span>
           </div>
           <span class="time-sep">:</span>
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('shortMin', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('shortMin',1)">▲</button>
             <input type="number" class="time-input" id="shortMin" min="0" max="59" value="5" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('shortMin', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('shortMin',-1)">▼</button>
             <span class="time-unit-label">min</span>
           </div>
           <span class="time-sep">:</span>
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('shortSec', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('shortSec',1)">▲</button>
             <input type="number" class="time-input" id="shortSec" min="0" max="59" value="0" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('shortSec', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('shortSec',-1)">▼</button>
             <span class="time-unit-label">sec</span>
           </div>
         </div>
@@ -171,34 +164,32 @@
 
       <!-- Long Break -->
       <div class="time-input-group">
-        <div class="time-input-label">
-          <span>🌿 Long Break</span>
-        </div>
+        <div class="time-input-label"><span>🌿 Long Break</span></div>
         <div class="time-input-row">
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('longHr', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('longHr',1)">▲</button>
             <input type="number" class="time-input" id="longHr" min="0" max="2" value="0" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('longHr', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('longHr',-1)">▼</button>
             <span class="time-unit-label">hr</span>
           </div>
           <span class="time-sep">:</span>
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('longMin', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('longMin',1)">▲</button>
             <input type="number" class="time-input" id="longMin" min="0" max="59" value="15" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('longMin', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('longMin',-1)">▼</button>
             <span class="time-unit-label">min</span>
           </div>
           <span class="time-sep">:</span>
           <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('longSec', 1)">▲</button>
+            <button class="time-step-btn" onclick="stepUnit('longSec',1)">▲</button>
             <input type="number" class="time-input" id="longSec" min="0" max="59" value="0" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('longSec', -1)">▼</button>
+            <button class="time-step-btn" onclick="stepUnit('longSec',-1)">▼</button>
             <span class="time-unit-label">sec</span>
           </div>
         </div>
       </div>
 
-      <div class="section-label" style="margin-top:16px;">Alert Sound</div>
+      <div class="section-label" style="margin-top:14px;">Alert Sound</div>
       <div class="sound-row">
         <label class="sound-opt active" id="snd-bell">
           <input type="radio" name="sound" value="bell" checked> 🔔 Bell
@@ -214,9 +205,7 @@
     </div>
   </div>
 
-  <!-- ── FINISH FORM (hidden, triggered by JS) ── -->
-  <form action="{{ url_for('finish_pomodoro', session_id=session.id) }}" method="POST" id="finishForm" style="display:none">
-  </form>
+  <form action="{{ url_for('finish_pomodoro', session_id=session.id) }}" method="POST" id="finishForm" style="display:none"></form>
 
 </div>
 
@@ -225,7 +214,7 @@
   <div class="modal-card">
     <div class="modal-icon">🍅</div>
     <div class="modal-title">Finish Session?</div>
-    <div class="modal-text">Are you sure you want to finish your Pomodoro session? Your progress will be logged.</div>
+    <div class="modal-text">Your Pomodoro session will be logged and saved.</div>
     <div class="modal-actions">
       <button class="modal-btn modal-btn-confirm" onclick="confirmFinish()">Yes, Finish</button>
       <button class="modal-btn modal-btn-cancel" onclick="hideFinishModal()">Cancel</button>
@@ -237,32 +226,30 @@
 
 {% block scripts %}
 <script>
-// ── State ──────────────────────────────────────────
 const TOTAL_DASH = 276.46;
-const ring       = document.getElementById('ringProgress');
-const clockArea  = document.getElementById('clockArea');
-const ringWrap   = document.getElementById('ringWrap');
+const ring      = document.getElementById('ringProgress');
+const clockArea = document.getElementById('clockArea');
+const ringWrap  = document.getElementById('ringWrap');
 
-let phases       = ['FOCUS', 'SHORT BREAK', 'LONG BREAK'];
-let phaseIcons   = ['🔥', '☕', '🌿'];
-let phase        = 0; // 0=focus, 1=short, 2=long
-let pomCount     = 0;
-let isRunning    = false;
-let interval     = null;
-let totalSecs    = 0;
-let remaining    = 0;
+let phases     = ['FOCUS','SHORT BREAK','LONG BREAK'];
+let phaseIcons = ['🔥','☕','🌿'];
+let phase      = 0;
+let pomCount   = 0;
+let isRunning  = false;
+let interval   = null;
+let totalSecs  = 0;
+let remaining  = 0;
 
-// Read durations from HH:MM:SS inputs (returns seconds)
 function getDurations() {
   return {
-    focus: Math.max(1, parseInt(document.getElementById('focusHr').value||0) * 3600 + parseInt(document.getElementById('focusMin').value||0) * 60 + parseInt(document.getElementById('focusSec').value||0)),
-    short: Math.max(1, parseInt(document.getElementById('shortHr').value||0) * 3600 + parseInt(document.getElementById('shortMin').value||0) * 60 + parseInt(document.getElementById('shortSec').value||0)),
-    long:  Math.max(1, parseInt(document.getElementById('longHr').value||0) * 3600 + parseInt(document.getElementById('longMin').value||0) * 60 + parseInt(document.getElementById('longSec').value||0)),
+    focus: Math.max(1, (parseInt(document.getElementById('focusHr').value)||0)*3600 + (parseInt(document.getElementById('focusMin').value)||0)*60 + (parseInt(document.getElementById('focusSec').value)||0)),
+    short: Math.max(1, (parseInt(document.getElementById('shortHr').value)||0)*3600 + (parseInt(document.getElementById('shortMin').value)||0)*60 + (parseInt(document.getElementById('shortSec').value)||0)),
+    long:  Math.max(1, (parseInt(document.getElementById('longHr').value)||0)*3600 + (parseInt(document.getElementById('longMin').value)||0)*60 + (parseInt(document.getElementById('longSec').value)||0)),
   };
 }
 
 function initTimer() {
-  const d  = getDurations();
+  const d = getDurations();
   totalSecs = phase === 0 ? d.focus : phase === 1 ? d.short : d.long;
   remaining = totalSecs;
   render();
@@ -271,23 +258,17 @@ function initTimer() {
 
 function render() {
   const h = Math.floor(remaining / 3600);
-  const m = String(Math.floor((remaining % 3600) / 60)).padStart(2, '0');
-  const s = String(remaining % 60).padStart(2, '0');
+  const m = String(Math.floor((remaining % 3600) / 60)).padStart(2,'0');
+  const s = String(remaining % 60).padStart(2,'0');
   document.getElementById('timerDisplay').textContent = h > 0 ? `${String(h).padStart(2,'0')}:${m}:${s}` : `${m}:${s}`;
-
   const progress = totalSecs > 0 ? remaining / totalSecs : 1;
-  const offset   = TOTAL_DASH * (1 - progress);
-  ring.style.strokeDashoffset = offset;
-
-  // Color: warning in last 20% of focus, green for breaks
+  ring.style.strokeDashoffset = TOTAL_DASH * (1 - progress);
   ring.classList.toggle('pom-warning', progress < 0.2 && phase === 0);
   ring.classList.toggle('pom-break', phase !== 0);
-
-  // Update ring gradient
   if (phase !== 0) {
     ring.style.stroke = 'url(#ringGradientBreak)';
   } else if (progress < 0.2) {
-    ring.style.stroke = '';  // let CSS .pom-warning handle it
+    ring.style.stroke = 'var(--danger)';
   } else {
     ring.style.stroke = 'url(#ringGradient)';
   }
@@ -297,17 +278,8 @@ function updatePhasePill() {
   const pill = document.getElementById('phasePill');
   document.getElementById('phaseLabel').textContent = phases[phase];
   document.getElementById('phaseIcon').textContent  = phaseIcons[phase];
-
-  pill.classList.remove('phase-focus', 'phase-break');
+  pill.classList.remove('phase-focus','phase-break');
   pill.classList.add(phase === 0 ? 'phase-focus' : 'phase-break');
-
-  // Time text glow color
-  const timeEl = document.getElementById('timerDisplay');
-  if (phase === 0) {
-    timeEl.style.textShadow = '0 0 20px rgba(245,166,35,0.35)';
-  } else {
-    timeEl.style.textShadow = '0 0 20px rgba(46,213,115,0.35)';
-  }
 }
 
 function updateSessionDots() {
@@ -315,14 +287,10 @@ function updateSessionDots() {
   dots.forEach((dot, i) => {
     dot.classList.toggle('filled', i < pomCount % 4 || (pomCount > 0 && pomCount % 4 === 0 && i < 4));
   });
-  // Reset dots after 4
-  if (pomCount > 0 && pomCount % 4 === 0) {
-    dots.forEach(d => d.classList.add('filled'));
-  }
+  if (pomCount > 0 && pomCount % 4 === 0) dots.forEach(d => d.classList.add('filled'));
 }
 
 function toggleTimer() {
-  const btn = document.getElementById('playPauseBtn');
   const playIconSvg = document.getElementById('playIcon');
   if (isRunning) {
     clearInterval(interval);
@@ -343,8 +311,7 @@ function tick() {
     clearInterval(interval);
     isRunning = false;
     clockArea.classList.remove('is-active');
-    const playIconSvg = document.getElementById('playIcon');
-    playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+    document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
     onPhaseEnd();
     return;
   }
@@ -354,18 +321,13 @@ function tick() {
 
 function onPhaseEnd() {
   playAlert();
-
-  // Phase transition animation
   ringWrap.classList.add('phase-transition');
   setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
-
   if (phase === 0) {
-    // Focus just ended — log to Flask
     pomCount++;
     updateSessionDots();
     document.getElementById('finishForm').submit();
   }
-  // Advance phase: focus→short, short→long (every 4), long→focus
   if (phase === 0) {
     phase = pomCount % 4 === 0 ? 2 : 1;
   } else {
@@ -378,17 +340,10 @@ function skipTimer() {
   clearInterval(interval);
   isRunning = false;
   clockArea.classList.remove('is-active');
-  const playIconSvg = document.getElementById('playIcon');
-  playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
-
-  // Phase transition animation
+  document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
   ringWrap.classList.add('phase-transition');
   setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
-
-  if (phase === 0 && (totalSecs - remaining) > 5) {
-    // Partial focus — still log it
-    document.getElementById('finishForm').submit();
-  }
+  if (phase === 0 && (totalSecs - remaining) > 5) document.getElementById('finishForm').submit();
   phase = phase === 0 ? 1 : 0;
   initTimer();
 }
@@ -397,14 +352,11 @@ function resetTimer() {
   clearInterval(interval);
   isRunning = false;
   clockArea.classList.remove('is-active');
-  const playIconSvg = document.getElementById('playIcon');
-  playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+  document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
   initTimer();
 }
 
-// ── Time Inputs ──────────────────────────────────
 function onTimeInput() {
-  // Clamp values
   ['focusHr','focusMin','focusSec','shortHr','shortMin','shortSec','longHr','longMin','longSec'].forEach(id => {
     const el = document.getElementById(id);
     let v = parseInt(el.value) || 0;
@@ -419,85 +371,127 @@ function onTimeInput() {
 function stepUnit(inputId, dir) {
   const el = document.getElementById(inputId);
   let v = parseInt(el.value) || 0;
-  v += dir;
-
-  // Get min/max from the input's own attributes
-  const min = parseInt(el.min) || 0;
-  const max = parseInt(el.max) || 59;
-  v = Math.max(min, Math.min(max, v));
-
+  v = Math.max(parseInt(el.min)||0, Math.min(parseInt(el.max)||59, v + dir));
   el.value = v;
   onTimeInput();
 }
 
-// ── Presets ───────────────────────────────────────
-function applyPreset(fh, fm, fs, sh, sm, ss, lh, lm, ls, btn) {
-  document.getElementById('focusHr').value  = fh;
-  document.getElementById('focusMin').value = fm;
-  document.getElementById('focusSec').value = fs;
-  document.getElementById('shortHr').value  = sh;
-  document.getElementById('shortMin').value = sm;
-  document.getElementById('shortSec').value = ss;
-  document.getElementById('longHr').value   = lh;
-  document.getElementById('longMin').value  = lm;
-  document.getElementById('longSec').value  = ls;
+function applyPreset(fh,fm,fs,sh,sm,ss,lh,lm,ls,btn) {
+  document.getElementById('focusHr').value=fh; document.getElementById('focusMin').value=fm; document.getElementById('focusSec').value=fs;
+  document.getElementById('shortHr').value=sh; document.getElementById('shortMin').value=sm; document.getElementById('shortSec').value=ss;
+  document.getElementById('longHr').value=lh;  document.getElementById('longMin').value=lm;  document.getElementById('longSec').value=ls;
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   if (!isRunning) initTimer();
 }
 
-// ── Sound opts ────────────────────────────────────
+// ── Persistent AudioContext (one shared instance, resumed before use) ──
+let _audioCtx = null;
+
+function getAudioCtx() {
+  if (!_audioCtx) {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _audioCtx;
+}
+
+// Unlock/warm up the audio context on any user gesture
+function warmAudio() {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+  } catch(e) {}
+}
+
 document.querySelectorAll('.sound-opt').forEach(opt => {
   opt.addEventListener('click', () => {
     document.querySelectorAll('.sound-opt').forEach(o => o.classList.remove('active'));
     opt.classList.add('active');
+    warmAudio(); // unlock audio on sound selection too
   });
 });
 
-function playAlert() {
+// Warm up on play button interaction
+document.getElementById('playPauseBtn').addEventListener('mousedown', warmAudio);
+document.getElementById('skipBtn').addEventListener('mousedown', warmAudio);
+document.getElementById('resetBtn').addEventListener('mousedown', warmAudio);
+
+async function playAlert() {
   const selected = document.querySelector('.sound-opt.active input');
   if (!selected || selected.value === 'none') return;
   try {
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    // Always resume — handles tab-switch suspensions and autoplay policies
+    if (ctx.state === 'suspended') await ctx.resume();
+
     const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
     if (selected.value === 'bell') {
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.5);
+      // Rich bell: fundamental + harmonic
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(440, t + 0.6);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+      osc.start(t);
+      osc.stop(t + 1.2);
+
+      // Second tone for richness
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.setValueAtTime(1320, t);
+      osc2.frequency.exponentialRampToValueAtTime(660, t + 0.5);
+      gain2.gain.setValueAtTime(0, t);
+      gain2.gain.linearRampToValueAtTime(0.2, t + 0.01);
+      gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      osc2.start(t);
+      osc2.stop(t + 0.8);
     } else {
-      osc.frequency.setValueAtTime(528, ctx.currentTime);
-      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
-      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.3);
+      // Chime: ascending three-note
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(528, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.3, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.start(t);
+      osc.stop(t + 0.4);
+
+      [[660, t + 0.18], [880, t + 0.36]].forEach(([freq, when]) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, when);
+        g.gain.setValueAtTime(0, when);
+        g.gain.linearRampToValueAtTime(0.3, when + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, when + 0.4);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start(when);
+        o.stop(when + 0.4);
+      });
     }
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.8);
-  } catch(e) {}
+  } catch(e) {
+    console.warn('Audio playback failed:', e);
+  }
 }
 
-// ── Finish Modal ─────────────────────────────────
-function showFinishModal() {
-  document.getElementById('finishModal').classList.add('is-open');
-}
-function hideFinishModal() {
-  document.getElementById('finishModal').classList.remove('is-open');
-}
-function confirmFinish() {
-  document.getElementById('finishForm').submit();
-}
-// Close modal on overlay click
+function showFinishModal()  { document.getElementById('finishModal').classList.add('is-open'); }
+function hideFinishModal()  { document.getElementById('finishModal').classList.remove('is-open'); }
+function confirmFinish()    { document.getElementById('finishForm').submit(); }
+
 document.getElementById('finishModal').addEventListener('click', function(e) {
   if (e.target === this) hideFinishModal();
 });
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') hideFinishModal();
-});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideFinishModal(); });
 
-// ── Init ──────────────────────────────────────────
 initTimer();
 updateSessionDots();
 </script>

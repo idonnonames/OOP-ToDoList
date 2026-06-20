@@ -1,5 +1,6 @@
 import os
 import uuid
+import json
 from flask import Flask, render_template, request, redirect, url_for, flash
 from models import db, Task, PriorityTask, Note, ChecklistNote, PomodoroSession, ProofFile
 from datetime import datetime
@@ -37,7 +38,19 @@ def create_app():
         sessions = PomodoroSession.query.filter_by(_status="done").all()
         total_focus_sec = sum(s.duration_sec for s in sessions)
         total_focus = round(total_focus_sec / 60, 1)
-        return render_template("index.html", tasks=tasks, total_focus=total_focus)
+
+        # Serialize task data for the calendar widget (client-side JS)
+        tasks_json = json.dumps([{
+            "id":      t.id,
+            "title":   t.title,
+            "is_done": t.is_done,
+            "type":    t.task_type,
+            # deadline only exists on PriorityTask; use ISO format or null
+            "deadline": t.deadline.strftime("%Y-%m-%d") if hasattr(t, "deadline") and t.deadline else None,
+            "created":  t.created_at.strftime("%Y-%m-%d") if t.created_at else None,
+        } for t in tasks])
+
+        return render_template("index.html", tasks=tasks, total_focus=total_focus, tasks_json=tasks_json)
 
     # ── TASK ENGINE ───────────────────────────────────────────────────────
     @app.route("/tasks/create", methods=["POST"])
