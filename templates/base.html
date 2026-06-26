@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Productivity Hub{% endblock %}</title>
-  <!-- ⚡ Theme init MUST be inline in <head> to prevent flash of wrong theme -->
   <script>
     (function() {
       var theme = localStorage.getItem('ph-theme') || 'dark';
@@ -17,63 +16,63 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ══════════════════════════════════════════
-       LIQUID GLASS THEME: LIGHT (default, iOS 26)
-       ══════════════════════════════════════════ */
+       /* LIQUID GLASS THEME: LIGHT (vivid, high-contrast) */
+    
     :root,
     [data-theme="light"] {
-      --bg-base:        #f2f2f7;
-      --bg-secondary:   #ffffff;
-      --bg-tertiary:    #f2f2f7;
+      /* Rich gradient background, erceptible blue-to-lavender tint */
+      --bg-base:        #dde8f8;
+      --bg-secondary:   #e8effe;
+      --bg-tertiary:    #d4e0f5;
 
-      /* Liquid Glass surface */
-      --glass-bg:          rgba(255,255,255,0.72);
-      --glass-bg-heavy:    rgba(255,255,255,0.88);
-      --glass-bg-ultra:    rgba(255,255,255,0.55);
-      --glass-border:      rgba(255,255,255,0.9);
-      --glass-border-soft: rgba(255,255,255,0.55);
-      --glass-shadow:      rgba(0,0,0,0.10);
-      --glass-shadow-lg:   rgba(0,0,0,0.16);
+      /* Liquid Glass surface, strong tinted glass, clearly visible */
+      --glass-bg:          rgba(180, 210, 255, 0.70);
+      --glass-bg-heavy:    rgba(160, 195, 255, 0.85);
+      --glass-bg-ultra:    rgba(200, 220, 255, 0.50);
+      --glass-border:      rgba(255,255,255,0.80);
+      --glass-border-soft: rgba(255,255,255,0.50);
+      --glass-shadow:      rgba(60,100,200,0.18);
+      --glass-shadow-lg:   rgba(60,100,200,0.28);
 
-      /* Specular highlight — the "liquid" shimmer */
+      /* Specular highlight */
       --specular:          rgba(255,255,255,0.95);
-      --specular-soft:     rgba(255,255,255,0.6);
+      --specular-soft:     rgba(255,255,255,0.65);
 
-      /* Chromatic refraction tints */
-      --refract-blue:      rgba(50,120,255,0.08);
-      --refract-purple:    rgba(120,80,255,0.07);
-      --refract-teal:      rgba(0,180,160,0.07);
+      /* Chromatic refraction tints — more vivid */
+      --refract-blue:      rgba(50,120,255,0.18);
+      --refract-purple:    rgba(120,80,255,0.14);
+      --refract-teal:      rgba(0,180,160,0.12);
 
-      --text:              #0a0a0b;
-      --text-secondary:    #1c1c1e;
-      --text-tertiary:     #48484a;
-      --text-quaternary:   #8e8e93;
+      --text:              #0a0a1a;
+      --text-secondary:    #1c1c2e;
+      --text-tertiary:     #3a3a5c;
+      --text-quaternary:   #6e6e8e;
 
-      --separator:         rgba(60,60,67,0.12);
-      --separator-opaque:  #c6c6c8;
+      --separator:         rgba(60,60,120,0.15);
+      --separator-opaque:  #a8aac8;
 
       /* System colors */
-      --sys-blue:          #007aff;
-      --sys-blue-light:    rgba(0,122,255,0.12);
-      --sys-indigo:        #5856d6;
-      --sys-purple:        #af52de;
-      --sys-pink:          #ff2d55;
-      --sys-red:           #ff3b30;
-      --sys-orange:        #ff9500;
-      --sys-yellow:        #ffcc00;
-      --sys-green:         #34c759;
-      --sys-teal:          #5ac8fa;
-      --sys-mint:          #00c7be;
+      --sys-blue:          #006ee6;
+      --sys-blue-light:    rgba(0,110,230,0.18);
+      --sys-indigo:        #4a48c8;
+      --sys-purple:        #9b40d0;
+      --sys-pink:          #e8004e;
+      --sys-red:           #e63028;
+      --sys-orange:        #e68600;
+      --sys-yellow:        #d4a800;
+      --sys-green:         #28b84e;
+      --sys-teal:          #3ab8f0;
+      --sys-mint:          #00b0a8;
 
       /* Semantic */
-      --accent:            #007aff;
-      --accent-light:      rgba(0,122,255,0.12);
-      --danger:            #ff3b30;
-      --danger-light:      rgba(255,59,48,0.12);
-      --success:           #34c759;
-      --success-light:     rgba(52,199,89,0.12);
-      --warning:           #ff9500;
-      --warning-light:     rgba(255,149,0,0.12);
+      --accent:            #006ee6;
+      --accent-light:      rgba(0,110,230,0.18);
+      --danger:            #e63028;
+      --danger-light:      rgba(230,48,40,0.15);
+      --success:           #28b84e;
+      --success-light:     rgba(40,184,78,0.15);
+      --warning:           #e68600;
+      --warning-light:     rgba(230,134,0,0.15);
 
       --mono: 'SF Mono', 'Fira Code', ui-monospace, monospace;
       --sans: 'Inter', -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
@@ -82,9 +81,8 @@
       color-scheme: light;
     }
 
-    /* ══════════════════════════════════════════
-       LIQUID GLASS THEME: DARK
-       ══════════════════════════════════════════ */
+    /* LIQUID GLASS THEME: DARK */
+
     [data-theme="dark"] {
       --bg-base:        #000000;
       --bg-secondary:   #1c1c1e;
@@ -157,8 +155,12 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+    [data-theme="light"] body {
+      background-image: linear-gradient(140deg, #b8ccf0 0%, #ccdaf5 35%, #d8d0f5 65%, #c8e8f0 100%);
+      background-attachment: fixed;
+    }
 
-    /* ── Ambient background blobs (liquid glass depth effect) ── */
+    /* Ambient background blobs (liquid glass depth effect) */
     .ph-bg-ambient {
       position: fixed;
       inset: 0;
@@ -174,8 +176,8 @@
       width: 60%;
       height: 80%;
       background: radial-gradient(ellipse at center,
-        rgba(0,122,255,0.18) 0%,
-        rgba(88,86,214,0.12) 40%,
+        rgba(0,100,255,0.38) 0%,
+        rgba(88,86,214,0.28) 40%,
         transparent 70%);
       filter: blur(80px);
       animation: ambientDrift1 18s ease-in-out infinite alternate;
@@ -188,8 +190,8 @@
       width: 55%;
       height: 70%;
       background: radial-gradient(ellipse at center,
-        rgba(175,82,222,0.15) 0%,
-        rgba(0,199,190,0.10) 40%,
+        rgba(155,64,210,0.32) 0%,
+        rgba(0,180,170,0.22) 40%,
         transparent 70%);
       filter: blur(80px);
       animation: ambientDrift2 22s ease-in-out infinite alternate;
@@ -223,9 +225,7 @@
       padding: 0 24px 80px;
     }
 
-    /* ══════════════════════════════════════════
-       LIQUID GLASS CORE: .lg-panel
-       ══════════════════════════════════════════ */
+    /* LIQUID GLASS CORE: .lg-panel */
     .lg-panel {
       background: var(--glass-bg);
       backdrop-filter: blur(40px) saturate(180%);
@@ -240,7 +240,7 @@
       position: relative;
     }
 
-    /* Specular highlight layer — the "liquid" shimmer on top */
+    /* Specular highlight layer, the "liquid" shimmer on top */
     .lg-panel::before {
       content: '';
       position: absolute;
@@ -306,9 +306,7 @@
       pointer-events: none;
     }
 
-    /* ══════════════════════════════════════════
-       NAVBAR — Floating glass pill
-       ══════════════════════════════════════════ */
+    /* NAVBAR — Floating glass pill*/
     .ph-nav-wrap {
       padding: 16px 0 0;
       position: sticky;
@@ -399,7 +397,7 @@
       transform: scale(1.05);
     }
 
-    /* ── FLASH MESSAGES ── */
+    /* FLASH MESSAGES */
     .flash-area { margin-bottom: 20px; }
     .flash {
       font-size: 13px;
@@ -445,7 +443,7 @@
     }
     .flash-close:hover { opacity: 1; }
 
-    /* ── DASHBOARD HEADER ── */
+    /* DASHBOARD HEADER */
     .ph-header {
       display: flex;
       justify-content: space-between;
@@ -483,7 +481,7 @@
       letter-spacing: -0.8px;
     }
 
-    /* ── STAT CARDS ── */
+    /* STAT CARDS */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -534,7 +532,7 @@
     .stat-focus   .stat-accent-line { background: var(--sys-red); }
     .stat-total   .stat-accent-line { background: var(--sys-blue); }
 
-    /* ── MAIN GRID ── */
+    /* MAIN GRID */
     .main-grid {
       display: grid;
       grid-template-columns: 340px 1fr;
@@ -542,7 +540,7 @@
       align-items: start;
     }
 
-    /* ── PANEL HEADER ── */
+    /* PANEL HEADER */
     .panel-header {
       display: flex;
       align-items: center;
@@ -572,7 +570,7 @@
       flex: 1;
     }
 
-    /* ── FILTER TABS ── */
+    /* FILTER TABS */
     .filter-tabs {
       display: flex;
       gap: 2px;
@@ -599,7 +597,7 @@
     }
     .ftab:hover:not(.active) { color: var(--text-secondary); }
 
-    /* ── CREATE FORM ── */
+    /* CREATE FORM */
     .create-form { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
 
     .lg-input {
@@ -688,7 +686,7 @@
       background: var(--accent-light);
     }
 
-    /* ── BUTTONS ── */
+    /* BUTTONS */
     .lg-btn {
       padding: 13px 22px;
       border-radius: 14px;
@@ -742,7 +740,7 @@
       border-color: var(--accent);
     }
 
-    /* ── TASK LIST ── */
+    /* TASK LIST */
     .task-item {
       display: flex;
       align-items: center;
@@ -883,7 +881,7 @@
     }
     .empty-icon { font-size: 38px; margin-bottom: 12px; opacity: .5; }
 
-    /* ── TASK DETAIL ── */
+    /* TASK DETAIL */
     .back-btn {
       display: inline-flex;
       align-items: center;
@@ -969,7 +967,7 @@
       border-top: 1px solid var(--separator);
     }
 
-    /* ── PROOF UPLOAD ── */
+    /* PROOF UPLOAD */
     .proof-section { padding: 14px 18px 18px; border-top: 1px solid var(--separator); }
     .proof-section-title {
       font-size: 11px;
@@ -1059,9 +1057,7 @@
     }
     .proof-item:hover .proof-del { opacity: 1; }
 
-    /* ══════════════════════════════════════════
-       POMODORO TIMER — LIQUID GLASS
-       ══════════════════════════════════════════ */
+    /* POMODORO TIMER LIQUID GLASS */
     .pom-layout {
       display: grid;
       grid-template-columns: 1fr 360px;
@@ -1202,7 +1198,7 @@
 
     .pom-controls { display: flex; gap: 14px; align-items: center; z-index: 1; }
 
-    /* Glass circle buttons — the signature iOS 26 control */
+    /* Glass circle buttons the signature iOS 26 control */
     .pom-ctrl-glass {
       width: 48px; height: 48px;
       border-radius: 50%;
@@ -1273,7 +1269,7 @@
     }
     .pom-finish-btn svg { width: 15px; height: 15px; }
 
-    /* ── Confirmation Modal ── */
+    /* Confirmation Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -1325,7 +1321,7 @@
     .modal-btn-cancel { background: var(--bg-base); color: var(--text-tertiary); border: 1px solid var(--separator); }
     .modal-btn-cancel:hover { color: var(--text); }
 
-    /* ── Timer Customizer Panel ── */
+    /* Timer Customizer Panel */
     .pom-customizer { overflow: hidden; }
     .customizer-header {
       padding: 13px 18px;
@@ -1519,7 +1515,7 @@
     }
     .pom-ring-wrap.phase-transition { animation: phaseSwitch 0.5s ease; }
 
-    /* ── Calendar View ── */
+    /* Calendar View */
     .cal-section {
       margin-bottom: 24px;
     }
@@ -1577,18 +1573,17 @@
       padding-bottom: 8px;
     }
     .cal-day {
-      aspect-ratio: 1;
       border-radius: 10px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      align-items: stretch;
+      justify-content: flex-start;
       gap: 2px;
       cursor: pointer;
       transition: all .2s;
       position: relative;
-      padding: 4px 2px;
-      min-height: 36px;
+      padding: 5px 4px 5px;
+      min-height: 58px;
     }
     .cal-day:hover:not(.cal-empty):not(.cal-today) {
       background: var(--glass-bg-ultra);
@@ -1605,27 +1600,58 @@
       font-weight: 500;
       color: var(--text-secondary);
       line-height: 1;
+      text-align: center;
     }
     .cal-today .cal-day-num { color: #fff; font-weight: 700; }
     .cal-empty { cursor: default; }
     .cal-empty .cal-day-num { color: transparent; }
-    .cal-dots {
+    /* Liquid Glass Calendar Task Pills (Apple style) */
+    .cal-task-pills {
       display: flex;
+      flex-direction: column;
       gap: 2px;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 24px;
+      width: 100%;
+      margin-top: 2px;
     }
-    .cal-dot {
-      width: 4px; height: 4px;
-      border-radius: 50%;
+    .cal-task-pill {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 5px;
+      border-radius: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.1px;
+      backdrop-filter: blur(8px) saturate(180%);
+      -webkit-backdrop-filter: blur(8px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.25);
+      transition: transform 0.12s ease;
     }
-    .cal-dot-active  { background: var(--sys-orange); }
-    .cal-dot-done    { background: var(--sys-green); }
-    .cal-today .cal-dot-active { background: rgba(255,255,255,0.9); }
-    .cal-today .cal-dot-done   { background: rgba(255,255,255,0.6); }
+    .cal-task-pill:hover { transform: scale(1.04); }
+    .cal-pill-active {
+      background: linear-gradient(135deg, rgba(0,100,230,0.60) 0%, rgba(80,60,220,0.50) 100%);
+      color: #e8f0ff;
+    }
+    .cal-pill-done {
+      background: linear-gradient(135deg, rgba(30,170,70,0.55) 0%, rgba(28,180,80,0.40) 100%);
+      color: #d0f5dc;
+      text-decoration: line-through;
+      opacity: 0.85;
+    }
+    .cal-today .cal-task-pill {
+      border-color: rgba(255,255,255,0.4);
+    }
+    
+    .cal-task-more {
+      font-size: 8px;
+      color: var(--text-quaternary);
+      text-align: center;
+      font-weight: 600;
+      padding-top: 1px;
+    }
 
-    /* ── Responsive ── */
+    /* Responsive */
     @media (max-width: 900px) {
       .main-grid    { grid-template-columns: 1fr; }
       .stat-grid    { grid-template-columns: repeat(2, 1fr); }
@@ -1648,7 +1674,6 @@
     <div class="ph-nav-wrap">
       <nav class="ph-nav">
         <a href="{{ url_for('index') }}" class="ph-logo">
-          <div class="ph-logo-icon">⚡</div>
           Productivity Hub
         </a>
         <div class="ph-nav-right">

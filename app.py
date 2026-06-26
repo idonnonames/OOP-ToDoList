@@ -30,7 +30,7 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-    # ── DASHBOARD ─────────────────────────────────────────────────────────
+    # DASHBOARD 
     @app.route("/")
     def index():
         tasks    = Task.query.order_by(Task.created_at.desc()).all()
@@ -52,7 +52,7 @@ def create_app():
 
         return render_template("index.html", tasks=tasks, total_focus=total_focus, tasks_json=tasks_json)
 
-    # ── TASK ENGINE ───────────────────────────────────────────────────────
+    # TASK ENGINE 
     @app.route("/tasks/create", methods=["POST"])
     def create_task():
         title      = request.form.get("title", "").strip()
@@ -114,7 +114,7 @@ def create_app():
         task = Task.query.get_or_404(task_id)
         return render_template("task_detail.html", task=task)
 
-    # ── NOTE ENGINE ───────────────────────────────────────────────────────
+    # NOTE ENGINE 
     @app.route("/tasks/<int:task_id>/notes/create", methods=["POST"])
     def create_note(task_id):
         task      = Task.query.get_or_404(task_id)
@@ -151,7 +151,7 @@ def create_app():
         flash("Note deleted.", "info")
         return redirect(url_for("task_detail", task_id=task_id))
 
-    # ── TIME ENGINE ───────────────────────────────────────────────────────
+    # TIME ENGINE
     @app.route("/tasks/<int:task_id>/pomodoro/start", methods=["POST"])
     def start_pomodoro(task_id):
         task        = Task.query.get_or_404(task_id)
@@ -176,7 +176,7 @@ def create_app():
             flash(f"Pomodoro done! Logged {session.format_duration()}.", "success")
         return redirect(url_for("task_detail", task_id=session.task_id))
 
-    # ── PROOF ENGINE ─────────────────────────────────────────────────────
+    # PROOF ENGINE 
     @app.route("/tasks/<int:task_id>/upload", methods=["POST"])
     def upload_proof(task_id):
         task = Task.query.get_or_404(task_id)

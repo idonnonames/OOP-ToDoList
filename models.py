@@ -3,10 +3,7 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-
-# ─────────────────────────────────────────────
 #  TASK ENGINE  (Inheritance)
-# ─────────────────────────────────────────────
 
 class Task(db.Model):
     """Base task class. Stores common fields for every task."""
@@ -67,9 +64,7 @@ class PriorityTask(Task):
                 f"priority={self.priority} overdue={self.is_overdue()}>")
 
 
-# ─────────────────────────────────────────────
 #  NOTE ENGINE  (Composition + Polymorphism)
-# ─────────────────────────────────────────────
 
 class Note(db.Model):
     """
@@ -145,10 +140,7 @@ class ChecklistNote(Note):
     def __repr__(self):
         return f"<ChecklistNote id={self.id} items={len(self.items())}>"
 
-
-# ─────────────────────────────────────────────
 #  TIME ENGINE  (Encapsulation)
-# ─────────────────────────────────────────────
 
 class PomodoroSession(db.Model):
     """
@@ -169,7 +161,7 @@ class PomodoroSession(db.Model):
 
     task         = db.relationship("Task", back_populates="sessions")
 
-    # ── public interface ──────────────────────
+    # public interface 
     @property
     def status(self):
         return self._status
@@ -214,10 +206,7 @@ class PomodoroSession(db.Model):
         return (f"<PomodoroSession id={self.id} task_id={self.task_id} "
                 f"status={self._status} dur={self.duration_sec}s>")
 
-
-# ─────────────────────────────────────────────
-#  PROOF ENGINE  (Composition)
-# ─────────────────────────────────────────────
+#  PROOF ENGINE  (Composition)─
 
 class ProofFile(db.Model):
     """

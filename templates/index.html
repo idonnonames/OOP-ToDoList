@@ -14,35 +14,35 @@
   </div>
 </div>
 
-<!-- ── STAT CARDS ── -->
+<!-- STAT CARDS -->
 <div class="stat-grid">
   <div class="lg-card stat-card stat-pending" style="position:relative;">
-    <div class="stat-icon">⚡</div>
+    <div class="stat-icon"></div>
     <div class="stat-num">{{ tasks | selectattr('is_done', 'equalto', false) | list | length }}</div>
     <div class="stat-label">Active Tasks</div>
     <div class="stat-accent-line"></div>
   </div>
   <div class="lg-card stat-card stat-done" style="position:relative;">
-    <div class="stat-icon">✓</div>
+    <div class="stat-icon"></div>
     <div class="stat-num">{{ tasks | selectattr('is_done') | list | length }}</div>
     <div class="stat-label">Completed</div>
     <div class="stat-accent-line"></div>
   </div>
   <div class="lg-card stat-card stat-focus" style="position:relative;">
-    <div class="stat-icon">🍅</div>
+    <div class="stat-icon"></div>
     <div class="stat-num">{{ total_focus }}</div>
     <div class="stat-label">Focus Minutes</div>
     <div class="stat-accent-line"></div>
   </div>
   <div class="lg-card stat-card stat-total" style="position:relative;">
-    <div class="stat-icon">#</div>
+    <div class="stat-icon"></div>
     <div class="stat-num">{{ tasks | length }}</div>
     <div class="stat-label">Total Tasks</div>
     <div class="stat-accent-line"></div>
   </div>
 </div>
 
-<!-- ── CALENDAR VIEW ── -->
+<!-- CALENDAR VIEW -->
 <div class="lg-panel cal-section" id="calendar">
   <div class="cal-header">
     <button class="cal-nav-btn" id="calPrev" title="Previous month">‹</button>
@@ -57,7 +57,7 @@
   </div>
 </div>
 
-<!-- ── MAIN GRID ── -->
+<!-- MAIN GRID -->
 <div class="main-grid">
 
   <!-- LEFT: Create task -->
@@ -151,7 +151,7 @@
                   <span class="meta-chip">📝 {{ task.notes | length }}</span>
                 {% endif %}
                 {% if task.sessions | length > 0 %}
-                  <span class="meta-chip">🍅 {{ task.sessions | length }}</span>
+                  <span class="meta-chip"> {{ task.sessions | length }}</span>
                 {% endif %}
               </div>
             </div>
@@ -189,7 +189,7 @@
 
 {% block scripts %}
 <script>
-// ── Clock ──
+// Clock 
 function updateClock() {
   const now = new Date();
   document.getElementById('liveClock').textContent =
@@ -200,7 +200,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ── Priority toggle ──
+// Priority toggle
 function togglePriority(show) {
   document.getElementById('priorityFields').style.display = show ? 'block' : 'none';
 }
@@ -212,7 +212,7 @@ document.querySelectorAll('.pri-btn').forEach(btn => {
   });
 });
 
-// ── Task filter (status + calendar date) ──
+// Task filter (status + calendar date)
 let currentFilter = 'all';
 let calFilterDate = null;
 
@@ -243,7 +243,7 @@ function clearCalFilter() {
   applyFilters();
 }
 
-// ── Calendar ──
+// Calendar
 const TASK_DATA = {{ tasks_json | safe }};
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTH_NAMES = ['January','February','March','April','May','June',
@@ -268,14 +268,13 @@ function buildCalendar() {
     grid.appendChild(h);
   });
 
-  // Build dot map keyed by "YYYY-MM-DD"
-  const dotMap = {};
+  // Build tasks-by-date map keyed by "YYYY-MM-DD"
+  const tasksByDate = {};
   TASK_DATA.forEach(t => {
     const key = t.deadline || t.created;
     if (!key) return;
-    if (!dotMap[key]) dotMap[key] = { active: 0, done: 0 };
-    if (t.is_done) dotMap[key].done++;
-    else dotMap[key].active++;
+    if (!tasksByDate[key]) tasksByDate[key] = [];
+    tasksByDate[key].push(t);
   });
 
   const firstDay    = new Date(calYear, calMonth, 1).getDay();
@@ -302,21 +301,25 @@ function buildCalendar() {
     num.textContent = d;
     cell.appendChild(num);
 
-    const dots = dotMap[dateStr];
-    if (dots) {
-      const dotsEl = document.createElement('div');
-      dotsEl.className = 'cal-dots';
-      for (let i = 0; i < Math.min(dots.active, 3); i++) {
-        const dot = document.createElement('div');
-        dot.className = 'cal-dot cal-dot-active';
-        dotsEl.appendChild(dot);
+    const tasksForDay = tasksByDate[dateStr];
+    if (tasksForDay && tasksForDay.length > 0) {
+      const pillsEl = document.createElement('div');
+      pillsEl.className = 'cal-task-pills';
+      const maxShow = 2;
+      tasksForDay.slice(0, maxShow).forEach(task => {
+        const pill = document.createElement('div');
+        pill.className = 'cal-task-pill ' + (task.is_done ? 'cal-pill-done' : 'cal-pill-active');
+        pill.textContent = task.title.length > 10 ? task.title.slice(0, 9) + '…' : task.title;
+        pill.title = task.title;
+        pillsEl.appendChild(pill);
+      });
+      if (tasksForDay.length > maxShow) {
+        const more = document.createElement('div');
+        more.className = 'cal-task-more';
+        more.textContent = `+${tasksForDay.length - maxShow} more`;
+        pillsEl.appendChild(more);
       }
-      for (let i = 0; i < Math.min(dots.done, 3); i++) {
-        const dot = document.createElement('div');
-        dot.className = 'cal-dot cal-dot-done';
-        dotsEl.appendChild(dot);
-      }
-      cell.appendChild(dotsEl);
+      cell.appendChild(pillsEl);
     }
 
     cell.addEventListener('click', () => {

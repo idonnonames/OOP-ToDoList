@@ -1,15 +1,15 @@
 # OOP-ToDoList
 
-# 🎯 Productivity Hub
+# Productivity Hub
 
 A comprehensive web application designed to help users track tasks, manage study notes, and maintain focus using a built-in Pomodoro timer. Built with Object-Oriented Programming principles for our final project.
 
-## 🛠️ Tech Stack
+## Tech Stack
 * **Backend:** Python, Flask
 * **Database:** SQLite, Flask-SQLAlchemy
 * **Frontend:** HTML, CSS, Bootstrap 5 (Jinja2 Server-Side Rendering)
 
-## 🏗️ Architecture & OOP Design
+## Architecture & OOP Design
 This project heavily utilizes Object-Oriented Programming:
 * **Inheritance:** Base `Task` class extended by `PriorityTask`. Base `Note` class extended by `ChecklistNote`.
 * **Composition:** The `User` object directly owns `Tasks` and `Notes`.
@@ -17,7 +17,7 @@ This project heavily utilizes Object-Oriented Programming:
 
 ---
 
-## 🚀 How to Run the Project Locally
+## How to Run the Project Locally
 
 **Step 1:** Open your terminal and pull the latest code:
 * `git clone https://github.com/idonnonames/OOP-ToDoList.git`
