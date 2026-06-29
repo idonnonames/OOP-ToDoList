@@ -325,11 +325,11 @@ function onPhaseEnd() {
   if (phase === 0) {
     pomCount++;
     updateSessionDots();
-    // Play alert FIRST, then submit after sound fully plays (3s)
+    // Play alert FIRST, then log the session in the background
     playAlert().then(() => {
-      setTimeout(() => {
-        document.getElementById('finishForm').submit();
-      }, 3000);
+      const form = document.getElementById('finishForm');
+      // Send a silent request to the server without leaving the page
+      fetch(form.action, { method: form.method });
     });
     phase = pomCount % 4 === 0 ? 2 : 1;
   } else {
@@ -346,7 +346,13 @@ function skipTimer() {
   document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
   ringWrap.classList.add('phase-transition');
   setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
-  if (phase === 0 && (totalSecs - remaining) > 5) document.getElementById('finishForm').submit();
+  
+  // Use fetch instead of submit() for skipping as well
+  if (phase === 0 && (totalSecs - remaining) > 5) {
+      const form = document.getElementById('finishForm');
+      fetch(form.action, { method: form.method });
+  }
+  
   phase = phase === 0 ? 1 : 0;
   initTimer();
 }
