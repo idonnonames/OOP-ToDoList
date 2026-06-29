@@ -90,19 +90,19 @@ Timer Settings
 
 <div class="section-label">Presets</div>
 <div class="preset-grid" style="margin-bottom:18px;">
-<button class="preset-btn active" onclick="applyPreset(0,25,0,0,5,0,0,15,0,this)">
+<button class="preset-btn active" onclick="applyPreset(0,25,0,0,5,0,this)">
 <span class="preset-name">Classic</span>
 <span>25:00 / 5:00</span>
 </button>
-<button class="preset-btn" onclick="applyPreset(0,50,0,0,10,0,0,30,0,this)">
+<button class="preset-btn" onclick="applyPreset(0,50,0,0,10,0,this)">
 <span class="preset-name">Deep Work</span>
 <span>50:00 / 10:00</span>
 </button>
-<button class="preset-btn" onclick="applyPreset(0,15,0,0,3,0,0,10,0,this)">
+<button class="preset-btn" onclick="applyPreset(0,15,0,0,3,0,this)">
 <span class="preset-name">Sprints</span>
 <span>15:00 / 3:00</span>
 </button>
-<button class="preset-btn" onclick="applyPreset(1,30,0,0,15,0,0,30,0,this)">
+<button class="preset-btn" onclick="applyPreset(1,30,0,0,15,0,this)">
 <span class="preset-name">Marathon</span>
 <span>1:30:00 / 15:00</span>
 </button>
@@ -135,9 +135,9 @@ Timer Settings
 </div>
 </div>
 
-<!-- Short Break -->
+<!-- Break -->
 <div class="time-input-group">
-<div class="time-input-label"><span>Short Break</span></div>
+<div class="time-input-label"><span>☕ Break</span></div>
 <div class="time-input-row">
 <div class="time-unit">
 <button class="time-step-btn" onclick="stepUnit('shortHr',1)">▲</button>
@@ -157,33 +157,6 @@ Timer Settings
 <button class="time-step-btn" onclick="stepUnit('shortSec',1)">▲</button>
 <input type="number" class="time-input" id="shortSec" min="0" max="59" value="0" onchange="onTimeInput()">
 <button class="time-step-btn" onclick="stepUnit('shortSec',-1)">▼</button>
-<span class="time-unit-label">sec</span>
-</div>
-</div>
-</div>
-
-<!-- Long Break -->
-<div class="time-input-group">
-<div class="time-input-label"><span>Long Break</span></div>
-<div class="time-input-row">
-<div class="time-unit">
-<button class="time-step-btn" onclick="stepUnit('longHr',1)">▲</button>
-<input type="number" class="time-input" id="longHr" min="0" max="2" value="0" onchange="onTimeInput()">
-<button class="time-step-btn" onclick="stepUnit('longHr',-1)">▼</button>
-<span class="time-unit-label">hr</span>
-</div>
-<span class="time-sep">:</span>
-<div class="time-unit">
-<button class="time-step-btn" onclick="stepUnit('longMin',1)">▲</button>
-<input type="number" class="time-input" id="longMin" min="0" max="59" value="15" onchange="onTimeInput()">
-<button class="time-step-btn" onclick="stepUnit('longMin',-1)">▼</button>
-<span class="time-unit-label">min</span>
-</div>
-<span class="time-sep">:</span>
-<div class="time-unit">
-<button class="time-step-btn" onclick="stepUnit('longSec',1)">▲</button>
-<input type="number" class="time-input" id="longSec" min="0" max="59" value="0" onchange="onTimeInput()">
-<button class="time-step-btn" onclick="stepUnit('longSec',-1)">▼</button>
 <span class="time-unit-label">sec</span>
 </div>
 </div>
@@ -231,7 +204,8 @@ const ring      = document.getElementById('ringProgress');
 const clockArea = document.getElementById('clockArea');
 const ringWrap  = document.getElementById('ringWrap');
 
-let phases     = ['FOCUS','SHORT BREAK','LONG BREAK'];
+let phases     = ['FOCUS','BREAK'];
+let phaseIcons = ['🔥','☕'];
 let phase      = 0;
 let pomCount   = 0;
 let isRunning  = false;
@@ -243,13 +217,12 @@ function getDurations() {
 return {
 focus: Math.max(1, (parseInt(document.getElementById('focusHr').value)||0)*3600 + (parseInt(document.getElementById('focusMin').value)||0)*60 + (parseInt(document.getElementById('focusSec').value)||0)),
 short: Math.max(1, (parseInt(document.getElementById('shortHr').value)||0)*3600 + (parseInt(document.getElementById('shortMin').value)||0)*60 + (parseInt(document.getElementById('shortSec').value)||0)),
-long:  Math.max(1, (parseInt(document.getElementById('longHr').value)||0)*3600 + (parseInt(document.getElementById('longMin').value)||0)*60 + (parseInt(document.getElementById('longSec').value)||0)),
 };
 }
 
 function initTimer() {
 const d = getDurations();
-totalSecs = phase === 0 ? d.focus : phase === 1 ? d.short : d.long;
+totalSecs = phase === 0 ? d.focus : d.short;
 remaining = totalSecs;
 render();
 updatePhasePill();
@@ -325,7 +298,6 @@ setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
 if (phase === 0) {
 pomCount++;
 updateSessionDots();
-    // Play alert FIRST, then submit after sound fully plays (3s)
     // Play alert FIRST, then log the session in the background
 playAlert().then(() => {
       setTimeout(() => {
@@ -335,7 +307,7 @@ playAlert().then(() => {
       // Send a silent request to the server without leaving the page
       fetch(form.action, { method: form.method });
 });
-phase = pomCount % 4 === 0 ? 2 : 1;
+phase = 1;
 } else {
 playAlert();
 phase = 0;
@@ -371,7 +343,7 @@ initTimer();
 }
 
 function onTimeInput() {
-['focusHr','focusMin','focusSec','shortHr','shortMin','shortSec','longHr','longMin','longSec'].forEach(id => {
+['focusHr','focusMin','focusSec','shortHr','shortMin','shortSec'].forEach(id => {
 const el = document.getElementById(id);
 let v = parseInt(el.value) || 0;
 if (id.endsWith('Sec')) v = Math.max(0, Math.min(59, v));
@@ -390,10 +362,9 @@ el.value = v;
 onTimeInput();
 }
 
-function applyPreset(fh,fm,fs,sh,sm,ss,lh,lm,ls,btn) {
+function applyPreset(fh,fm,fs,sh,sm,ss,btn) {
 document.getElementById('focusHr').value=fh; document.getElementById('focusMin').value=fm; document.getElementById('focusSec').value=fs;
 document.getElementById('shortHr').value=sh; document.getElementById('shortMin').value=sm; document.getElementById('shortSec').value=ss;
-document.getElementById('longHr').value=lh;  document.getElementById('longMin').value=lm;  document.getElementById('longSec').value=ls;
 document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
 btn.classList.add('active');
 if (!isRunning) initTimer();
