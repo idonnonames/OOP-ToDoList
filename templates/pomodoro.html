@@ -6,193 +6,220 @@
 
 <div class="pom-layout">
 
-  <!-- TIMER HERO -->
-  <div class="lg-panel">
-    <div class="pom-task-label">
-      Focusing on
-      <div class="pom-task-name">{{ session.task.title }}</div>
-    </div>
-
-    <div class="pom-clock-area" id="clockArea">
-      <div class="pom-ring-wrap" id="ringWrap">
-        <svg viewBox="0 0 100 100">
-          <defs>
-            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   style="stop-color:#007aff"/>
-              <stop offset="100%" style="stop-color:#5856d6"/>
-            </linearGradient>
-            <linearGradient id="ringGradientBreak" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   style="stop-color:#34c759"/>
-              <stop offset="100%" style="stop-color:#30d158"/>
-            </linearGradient>
-          </defs>
-          <circle class="pom-ring-track" cx="50" cy="50" r="44"/>
-          <circle class="pom-ring-progress" id="ringProgress" cx="50" cy="50" r="44"
-                  stroke-dasharray="276.46"
-                  stroke-dashoffset="0"/>
-        </svg>
-        <div class="pom-time-display">
-          <div class="pom-time" id="timerDisplay">
-            {% if session.duration_sec >= 3600 %}{{ '%02d' % (session.duration_sec // 3600) }}:{% endif %}{{ '%02d' % ((session.duration_sec % 3600) // 60) }}:{{ '%02d' % (session.duration_sec % 60) }}
-          </div>
-          <div class="pom-phase-pill phase-focus" id="phasePill">
-            <span id="phaseIcon">🔥</span>
-            <span id="phaseLabel">FOCUS</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="pom-session-dots" id="sessionDots">
-        <div class="pom-dot"></div>
-        <div class="pom-dot"></div>
-        <div class="pom-dot"></div>
-        <div class="pom-dot"></div>
-      </div>
-
-      <div class="pom-controls">
-        <button class="pom-ctrl-glass" id="skipBtn" title="Skip phase" onclick="skipTimer()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 4 15 12 5 20 5 4"></polygon>
-            <line x1="19" y1="5" x2="19" y2="19"></line>
-          </svg>
-        </button>
-        <button class="pom-ctrl-glass pom-play" id="playPauseBtn" onclick="toggleTimer()">
-          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-            <polygon points="6 3 20 12 6 21 6 3"></polygon>
-          </svg>
-        </button>
-        <button class="pom-ctrl-glass" id="resetBtn" title="Reset timer" onclick="resetTimer()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="1 4 1 10 7 10"></polyline>
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-          </svg>
-        </button>
-      </div>
-
-      <button class="pom-finish-btn" id="finishBtn" onclick="showFinishModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <line x1="9" y1="9" x2="15" y2="15"></line>
-          <line x1="15" y1="9" x2="9" y2="15"></line>
-        </svg>
-        Finish Session
-      </button>
-    </div>
-  </div>
-
-  <!-- CUSTOMIZER PANEL -->
-  <div class="lg-panel pom-customizer">
-    <div class="customizer-header">
-      <span style="color:var(--accent)">⚙</span>
-      Timer Settings
-    </div>
-    <div class="customizer-body">
-
-      <div class="section-label">Presets</div>
-          <div class="preset-grid" style="margin-bottom:18px;">
-      <button class="preset-btn active" onclick="applyPreset(0,25,0,0,5,0,this)">
-        <span class="preset-name">Classic</span>
-        <span>25:00 / 5:00</span>
-      </button>
-      <button class="preset-btn" onclick="applyPreset(0,50,0,0,10,0,this)">
-        <span class="preset-name">Deep Work</span>
-        <span>50:00 / 10:00</span>
-      </button>
-      <button class="preset-btn" onclick="applyPreset(0,15,0,0,3,0,this)">
-        <span class="preset-name">Sprints</span>
-        <span>15:00 / 3:00</span>
-      </button>
-      <button class="preset-btn" onclick="applyPreset(1,30,0,0,15,0,this)">
-        <span class="preset-name">Marathon</span>
-        <span>1:30:00 / 15:00</span>
-      </button>
-    </div>
-
-      <!-- Focus Duration -->
-      <div class="time-input-group">
-        <div class="time-input-label"><span>🔥 Focus</span></div>
-        <div class="time-input-row">
-          <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('focusHr',1)">▲</button>
-            <input type="number" class="time-input" id="focusHr" min="0" max="4" value="{{ session.duration_sec // 3600 }}" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('focusHr',-1)">▼</button>
-            <span class="time-unit-label">hr</span>
-          </div>
-          <span class="time-sep">:</span>
-          <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('focusMin',1)">▲</button>
-            <input type="number" class="time-input" id="focusMin" min="0" max="59" value="{{ (session.duration_sec % 3600) // 60 }}" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('focusMin',-1)">▼</button>
-            <span class="time-unit-label">min</span>
-          </div>
-          <span class="time-sep">:</span>
-          <div class="time-unit">
-            <button class="time-step-btn" onclick="stepUnit('focusSec',1)">▲</button>
-            <input type="number" class="time-input" id="focusSec" min="0" max="59" value="{{ session.duration_sec % 60 }}" onchange="onTimeInput()">
-            <button class="time-step-btn" onclick="stepUnit('focusSec',-1)">▼</button>
-            <span class="time-unit-label">sec</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Break -->
-<div class="time-input-group">
-  <div class="time-input-label"><span>☕ Break</span></div>
-  <div class="time-input-row">
-    <div class="time-unit">
-      <button class="time-step-btn" onclick="stepUnit('shortHr',1)">▲</button>
-      <input type="number" class="time-input" id="shortHr" min="0" max="2" value="0" onchange="onTimeInput()">
-      <button class="time-step-btn" onclick="stepUnit('shortHr',-1)">▼</button>
-      <span class="time-unit-label">hr</span>
-    </div>
-    <span class="time-sep">:</span>
-    <div class="time-unit">
-      <button class="time-step-btn" onclick="stepUnit('shortMin',1)">▲</button>
-      <input type="number" class="time-input" id="shortMin" min="0" max="59" value="5" onchange="onTimeInput()">
-      <button class="time-step-btn" onclick="stepUnit('shortMin',-1)">▼</button>
-      <span class="time-unit-label">min</span>
-    </div>
-    <span class="time-sep">:</span>
-    <div class="time-unit">
-      <button class="time-step-btn" onclick="stepUnit('shortSec',1)">▲</button>
-      <input type="number" class="time-input" id="shortSec" min="0" max="59" value="0" onchange="onTimeInput()">
-      <button class="time-step-btn" onclick="stepUnit('shortSec',-1)">▼</button>
-      <span class="time-unit-label">sec</span>
-    </div>
-  </div>
+<!-- TIMER HERO -->
+<div class="lg-panel">
+<div class="pom-task-label">
+Focusing on
+<div class="pom-task-name">{{ session.task.title }}</div>
 </div>
 
-      <div class="section-label" style="margin-top:14px;">Alert Sound</div>
-      <div class="sound-row">
-        <label class="sound-opt active" id="snd-bell">
-          <input type="radio" name="sound" value="bell" checked> 🔔 Bell
-        </label>
-        <label class="sound-opt" id="snd-chime">
-          <input type="radio" name="sound" value="chime"> 🎵 Chime
-        </label>
-        <label class="sound-opt" id="snd-none">
-          <input type="radio" name="sound" value="none"> 🔇 None
-        </label>
-      </div>
+<div class="pom-clock-area" id="clockArea">
+<div class="pom-ring-wrap" id="ringWrap">
+<svg viewBox="0 0 100 100">
+<defs>
+<linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%"   style="stop-color:#007aff"/>
+<stop offset="100%" style="stop-color:#5856d6"/>
+</linearGradient>
+<linearGradient id="ringGradientBreak" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%"   style="stop-color:#34c759"/>
+<stop offset="100%" style="stop-color:#30d158"/>
+</linearGradient>
+</defs>
+<circle class="pom-ring-track" cx="50" cy="50" r="44"/>
+<circle class="pom-ring-progress" id="ringProgress" cx="50" cy="50" r="44"
+stroke-dasharray="276.46"
+stroke-dashoffset="0"/>
+</svg>
+<div class="pom-time-display">
+<div class="pom-time" id="timerDisplay">
+{% if session.duration_sec >= 3600 %}{{ '%02d' % (session.duration_sec // 3600) }}:{% endif %}{{ '%02d' % ((session.duration_sec % 3600) // 60) }}:{{ '%02d' % (session.duration_sec % 60) }}
+</div>
+<div class="pom-phase-pill phase-focus" id="phasePill">
+<span id="phaseIcon">🔥</span>
+<span id="phaseLabel">FOCUS</span>
+</div>
+</div>
+</div>
 
-    </div>
-  </div>
+<div class="pom-session-dots" id="sessionDots">
+<div class="pom-dot"></div>
+<div class="pom-dot"></div>
+<div class="pom-dot"></div>
+<div class="pom-dot"></div>
+</div>
 
-  <form action="{{ url_for('finish_pomodoro', session_id=session.id) }}" method="POST" id="finishForm" style="display:none"></form>
+<div class="pom-controls">
+<button class="pom-ctrl-glass" id="skipBtn" title="Skip phase" onclick="skipTimer()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<polygon points="5 4 15 12 5 20 5 4"></polygon>
+<line x1="19" y1="5" x2="19" y2="19"></line>
+</svg>
+</button>
+<button class="pom-ctrl-glass pom-play" id="playPauseBtn" onclick="toggleTimer()">
+<svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+<polygon points="6 3 20 12 6 21 6 3"></polygon>
+</svg>
+</button>
+<button class="pom-ctrl-glass" id="resetBtn" title="Reset timer" onclick="resetTimer()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="1 4 1 10 7 10"></polyline>
+<path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+</svg>
+</button>
+</div>
+
+<button class="pom-finish-btn" id="finishBtn" onclick="showFinishModal()">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+<line x1="9" y1="9" x2="15" y2="15"></line>
+<line x1="15" y1="9" x2="9" y2="15"></line>
+</svg>
+Finish Session
+</button>
+</div>
+</div>
+
+<!-- CUSTOMIZER PANEL -->
+<div class="lg-panel pom-customizer">
+<div class="customizer-header">
+<span style="color:var(--accent)">⚙</span>
+Timer Settings
+</div>
+<div class="customizer-body">
+
+<div class="section-label">Presets</div>
+<div class="preset-grid" style="margin-bottom:18px;">
+<button class="preset-btn active" onclick="applyPreset(0,25,0,0,5,0,0,15,0,this)">
+<span class="preset-name">Classic</span>
+<span>25:00 / 5:00</span>
+</button>
+<button class="preset-btn" onclick="applyPreset(0,50,0,0,10,0,0,30,0,this)">
+<span class="preset-name">Deep Work</span>
+<span>50:00 / 10:00</span>
+</button>
+<button class="preset-btn" onclick="applyPreset(0,15,0,0,3,0,0,10,0,this)">
+<span class="preset-name">Sprints</span>
+<span>15:00 / 3:00</span>
+</button>
+<button class="preset-btn" onclick="applyPreset(1,30,0,0,15,0,0,30,0,this)">
+<span class="preset-name">Marathon</span>
+<span>1:30:00 / 15:00</span>
+</button>
+</div>
+
+<!-- Focus Duration -->
+<div class="time-input-group">
+<div class="time-input-label"><span>🔥 Focus</span></div>
+<div class="time-input-row">
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('focusHr',1)">▲</button>
+<input type="number" class="time-input" id="focusHr" min="0" max="4" value="{{ session.duration_sec // 3600 }}" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('focusHr',-1)">▼</button>
+<span class="time-unit-label">hr</span>
+</div>
+<span class="time-sep">:</span>
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('focusMin',1)">▲</button>
+<input type="number" class="time-input" id="focusMin" min="0" max="59" value="{{ (session.duration_sec % 3600) // 60 }}" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('focusMin',-1)">▼</button>
+<span class="time-unit-label">min</span>
+</div>
+<span class="time-sep">:</span>
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('focusSec',1)">▲</button>
+<input type="number" class="time-input" id="focusSec" min="0" max="59" value="{{ session.duration_sec % 60 }}" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('focusSec',-1)">▼</button>
+<span class="time-unit-label">sec</span>
+</div>
+</div>
+</div>
+
+<!-- Short Break -->
+<div class="time-input-group">
+<div class="time-input-label"><span>Short Break</span></div>
+<div class="time-input-row">
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('shortHr',1)">▲</button>
+<input type="number" class="time-input" id="shortHr" min="0" max="2" value="0" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('shortHr',-1)">▼</button>
+<span class="time-unit-label">hr</span>
+</div>
+<span class="time-sep">:</span>
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('shortMin',1)">▲</button>
+<input type="number" class="time-input" id="shortMin" min="0" max="59" value="5" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('shortMin',-1)">▼</button>
+<span class="time-unit-label">min</span>
+</div>
+<span class="time-sep">:</span>
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('shortSec',1)">▲</button>
+<input type="number" class="time-input" id="shortSec" min="0" max="59" value="0" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('shortSec',-1)">▼</button>
+<span class="time-unit-label">sec</span>
+</div>
+</div>
+</div>
+
+<!-- Long Break -->
+<div class="time-input-group">
+<div class="time-input-label"><span>Long Break</span></div>
+<div class="time-input-row">
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('longHr',1)">▲</button>
+<input type="number" class="time-input" id="longHr" min="0" max="2" value="0" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('longHr',-1)">▼</button>
+<span class="time-unit-label">hr</span>
+</div>
+<span class="time-sep">:</span>
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('longMin',1)">▲</button>
+<input type="number" class="time-input" id="longMin" min="0" max="59" value="15" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('longMin',-1)">▼</button>
+<span class="time-unit-label">min</span>
+</div>
+<span class="time-sep">:</span>
+<div class="time-unit">
+<button class="time-step-btn" onclick="stepUnit('longSec',1)">▲</button>
+<input type="number" class="time-input" id="longSec" min="0" max="59" value="0" onchange="onTimeInput()">
+<button class="time-step-btn" onclick="stepUnit('longSec',-1)">▼</button>
+<span class="time-unit-label">sec</span>
+</div>
+</div>
+</div>
+
+<div class="section-label" style="margin-top:14px;">Alert Sound</div>
+<div class="sound-row">
+<label class="sound-opt active" id="snd-bell">
+<input type="radio" name="sound" value="bell" checked> 🔔 Bell
+</label>
+<label class="sound-opt" id="snd-chime">
+<input type="radio" name="sound" value="chime"> 🎵 Chime
+</label>
+<label class="sound-opt" id="snd-none">
+<input type="radio" name="sound" value="none"> 🔇 None
+</label>
+</div>
+
+</div>
+</div>
+
+<form action="{{ url_for('finish_pomodoro', session_id=session.id) }}" method="POST" id="finishForm" style="display:none"></form>
 
 </div>
 
 <!-- CONFIRMATION MODAL -->
 <div class="modal-overlay" id="finishModal">
-  <div class="modal-card">
-    <div class="modal-icon"></div>
-    <div class="modal-title">Finish Session?</div>
-    <div class="modal-text">Your Pomodoro session will be logged and saved.</div>
-    <div class="modal-actions">
-      <button class="modal-btn modal-btn-confirm" onclick="confirmFinish()">Yes, Finish</button>
-      <button class="modal-btn modal-btn-cancel" onclick="hideFinishModal()">Cancel</button>
-    </div>
-  </div>
+<div class="modal-card">
+<div class="modal-icon"></div>
+<div class="modal-title">Finish Session?</div>
+<div class="modal-text">Your Pomodoro session will be logged and saved.</div>
+<div class="modal-actions">
+<button class="modal-btn modal-btn-confirm" onclick="confirmFinish()">Yes, Finish</button>
+<button class="modal-btn modal-btn-cancel" onclick="hideFinishModal()">Cancel</button>
+</div>
+</div>
 </div>
 
 {% endblock %}
@@ -204,8 +231,8 @@ const ring      = document.getElementById('ringProgress');
 const clockArea = document.getElementById('clockArea');
 const ringWrap  = document.getElementById('ringWrap');
 
-let phases     = ['FOCUS','BREAK']; 
-let phaseIcons = ['🔥','☕','🌙'];
+let phases     = ['FOCUS','SHORT BREAK','LONG BREAK'];
+let phase      = 0;
 let pomCount   = 0;
 let isRunning  = false;
 let interval   = null;
@@ -213,109 +240,117 @@ let totalSecs  = 0;
 let remaining  = 0;
 
 function getDurations() {
-  return {
-    focus: Math.max(1, (parseInt(document.getElementById('focusHr').value)||0)*3600 + (parseInt(document.getElementById('focusMin').value)||0)*60 + (parseInt(document.getElementById('focusSec').value)||0)),
-    break: Math.max(1, (parseInt(document.getElementById('shortHr').value)||0)*3600 + (parseInt(document.getElementById('shortMin').value)||0)*60 + (parseInt(document.getElementById('shortSec').value)||0))
-  };
+return {
+focus: Math.max(1, (parseInt(document.getElementById('focusHr').value)||0)*3600 + (parseInt(document.getElementById('focusMin').value)||0)*60 + (parseInt(document.getElementById('focusSec').value)||0)),
+short: Math.max(1, (parseInt(document.getElementById('shortHr').value)||0)*3600 + (parseInt(document.getElementById('shortMin').value)||0)*60 + (parseInt(document.getElementById('shortSec').value)||0)),
+long:  Math.max(1, (parseInt(document.getElementById('longHr').value)||0)*3600 + (parseInt(document.getElementById('longMin').value)||0)*60 + (parseInt(document.getElementById('longSec').value)||0)),
+};
 }
 
 function initTimer() {
-  const d = getDurations();
-  totalSecs = phase === 0 ? d.focus : d.break; // Only check for focus or break
-  remaining = totalSecs;
-  render();
-  updatePhasePill();
+const d = getDurations();
+totalSecs = phase === 0 ? d.focus : phase === 1 ? d.short : d.long;
+remaining = totalSecs;
+render();
+updatePhasePill();
 }
 
 function render() {
-  const h = Math.floor(remaining / 3600);
-  const m = String(Math.floor((remaining % 3600) / 60)).padStart(2,'0');
-  const s = String(remaining % 60).padStart(2,'0');
-  document.getElementById('timerDisplay').textContent = h > 0 ? `${String(h).padStart(2,'0')}:${m}:${s}` : `${m}:${s}`;
-  const progress = totalSecs > 0 ? remaining / totalSecs : 1;
-  ring.style.strokeDashoffset = TOTAL_DASH * (1 - progress);
-  ring.classList.toggle('pom-warning', progress < 0.2 && phase === 0);
-  ring.classList.toggle('pom-break', phase !== 0);
-  if (phase !== 0) {
-    ring.style.stroke = 'url(#ringGradientBreak)';
-  } else if (progress < 0.2) {
-    ring.style.stroke = 'var(--danger)';
-  } else {
-    ring.style.stroke = 'url(#ringGradient)';
-  }
+const h = Math.floor(remaining / 3600);
+const m = String(Math.floor((remaining % 3600) / 60)).padStart(2,'0');
+const s = String(remaining % 60).padStart(2,'0');
+document.getElementById('timerDisplay').textContent = h > 0 ? `${String(h).padStart(2,'0')}:${m}:${s}` : `${m}:${s}`;
+const progress = totalSecs > 0 ? remaining / totalSecs : 1;
+ring.style.strokeDashoffset = TOTAL_DASH * (1 - progress);
+ring.classList.toggle('pom-warning', progress < 0.2 && phase === 0);
+ring.classList.toggle('pom-break', phase !== 0);
+if (phase !== 0) {
+ring.style.stroke = 'url(#ringGradientBreak)';
+} else if (progress < 0.2) {
+ring.style.stroke = 'var(--danger)';
+} else {
+ring.style.stroke = 'url(#ringGradient)';
+}
 }
 
 function updatePhasePill() {
-  const pill = document.getElementById('phasePill');
-  document.getElementById('phaseLabel').textContent = phases[phase];
-  document.getElementById('phaseIcon').textContent  = phaseIcons[phase];
-  pill.classList.remove('phase-focus','phase-break');
-  pill.classList.add(phase === 0 ? 'phase-focus' : 'phase-break');
+const pill = document.getElementById('phasePill');
+document.getElementById('phaseLabel').textContent = phases[phase];
+document.getElementById('phaseIcon').textContent  = phaseIcons[phase];
+pill.classList.remove('phase-focus','phase-break');
+pill.classList.add(phase === 0 ? 'phase-focus' : 'phase-break');
 }
 
 function updateSessionDots() {
-  const dots = document.querySelectorAll('.pom-dot');
-  dots.forEach((dot, i) => {
-    dot.classList.toggle('filled', i < pomCount % 4 || (pomCount > 0 && pomCount % 4 === 0 && i < 4));
-  });
-  if (pomCount > 0 && pomCount % 4 === 0) dots.forEach(d => d.classList.add('filled'));
+const dots = document.querySelectorAll('.pom-dot');
+dots.forEach((dot, i) => {
+dot.classList.toggle('filled', i < pomCount % 4 || (pomCount > 0 && pomCount % 4 === 0 && i < 4));
+});
+if (pomCount > 0 && pomCount % 4 === 0) dots.forEach(d => d.classList.add('filled'));
 }
 
 function toggleTimer() {
-  const playIconSvg = document.getElementById('playIcon');
-  if (isRunning) {
-    clearInterval(interval);
-    isRunning = false;
-    clockArea.classList.remove('is-active');
-    playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
-  } else {
-    if (remaining === 0) initTimer();
-    isRunning = true;
-    clockArea.classList.add('is-active');
-    playIconSvg.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
-    interval = setInterval(tick, 1000);
-  }
+const playIconSvg = document.getElementById('playIcon');
+if (isRunning) {
+clearInterval(interval);
+isRunning = false;
+clockArea.classList.remove('is-active');
+playIconSvg.innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+} else {
+if (remaining === 0) initTimer();
+isRunning = true;
+clockArea.classList.add('is-active');
+playIconSvg.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+interval = setInterval(tick, 1000);
+}
 }
 
 function tick() {
-  if (remaining <= 0) {
-    clearInterval(interval);
-    isRunning = false;
-    clockArea.classList.remove('is-active');
-    document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
-    onPhaseEnd();
-    return;
-  }
-  remaining--;
-  render();
+if (remaining <= 0) {
+clearInterval(interval);
+isRunning = false;
+clockArea.classList.remove('is-active');
+document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+onPhaseEnd();
+return;
+}
+remaining--;
+render();
 }
 
 function onPhaseEnd() {
-  ringWrap.classList.add('phase-transition');
-  setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
+ringWrap.classList.add('phase-transition');
+setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
 
-  if (phase === 0) {
-    pomCount++;
-    updateSessionDots();
-    playAlert().then(() => {
+if (phase === 0) {
+pomCount++;
+updateSessionDots();
+    // Play alert FIRST, then submit after sound fully plays (3s)
+    // Play alert FIRST, then log the session in the background
+playAlert().then(() => {
+      setTimeout(() => {
+        document.getElementById('finishForm').submit();
+      }, 3000);
       const form = document.getElementById('finishForm');
+      // Send a silent request to the server without leaving the page
       fetch(form.action, { method: form.method });
-    });
-    phase = 1; // Always go to Break
-  } else {
-    playAlert();
-    phase = 0; // Always go to Focus
-  }
-  initTimer();
+});
+phase = pomCount % 4 === 0 ? 2 : 1;
+} else {
+playAlert();
+phase = 0;
+}
+initTimer();
 }
 
 function skipTimer() {
-  clearInterval(interval);
-  isRunning = false;
-  clockArea.classList.remove('is-active');
-  document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
-  ringWrap.classList.add('phase-transition');
-  setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
+clearInterval(interval);
+isRunning = false;
+clockArea.classList.remove('is-active');
+document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+ringWrap.classList.add('phase-transition');
+setTimeout(() => ringWrap.classList.remove('phase-transition'), 500);
+  if (phase === 0 && (totalSecs - remaining) > 5) document.getElementById('finishForm').submit();
   
   // Use fetch instead of submit() for skipping as well
   if (phase === 0 && (totalSecs - remaining) > 5) {
@@ -323,70 +358,71 @@ function skipTimer() {
       fetch(form.action, { method: form.method });
   }
   
-  phase = phase === 0 ? 1 : 0;
-  initTimer();
+phase = phase === 0 ? 1 : 0;
+initTimer();
 }
 
 function resetTimer() {
-  clearInterval(interval);
-  isRunning = false;
-  clockArea.classList.remove('is-active');
-  document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
-  initTimer();
+clearInterval(interval);
+isRunning = false;
+clockArea.classList.remove('is-active');
+document.getElementById('playIcon').innerHTML = '<polygon points="6 3 20 12 6 21 6 3"></polygon>';
+initTimer();
 }
 
 function onTimeInput() {
-  ['focusHr','focusMin','focusSec','shortHr','shortMin','shortSec'].forEach(id => {
-    const el = document.getElementById(id);
-    let v = parseInt(el.value) || 0;
-    if (id.endsWith('Sec')) v = Math.max(0, Math.min(59, v));
-    if (id.endsWith('Min')) v = Math.max(0, Math.min(59, v));
-    if (id.endsWith('Hr'))  v = Math.max(0, Math.min(4, v));
-    el.value = v;
-  });
-  if (!isRunning) initTimer();
+['focusHr','focusMin','focusSec','shortHr','shortMin','shortSec','longHr','longMin','longSec'].forEach(id => {
+const el = document.getElementById(id);
+let v = parseInt(el.value) || 0;
+if (id.endsWith('Sec')) v = Math.max(0, Math.min(59, v));
+if (id.endsWith('Min')) v = Math.max(0, Math.min(59, v));
+if (id.endsWith('Hr'))  v = Math.max(0, Math.min(4, v));
+el.value = v;
+});
+if (!isRunning) initTimer();
 }
 
 function stepUnit(inputId, dir) {
-  const el = document.getElementById(inputId);
-  let v = parseInt(el.value) || 0;
-  v = Math.max(parseInt(el.min)||0, Math.min(parseInt(el.max)||59, v + dir));
-  el.value = v;
-  onTimeInput();
+const el = document.getElementById(inputId);
+let v = parseInt(el.value) || 0;
+v = Math.max(parseInt(el.min)||0, Math.min(parseInt(el.max)||59, v + dir));
+el.value = v;
+onTimeInput();
 }
 
-function applyPreset(fh,fm,fs,bh,bm,bs,btn) {
-  document.getElementById('focusHr').value=fh; document.getElementById('focusMin').value=fm; document.getElementById('focusSec').value=fs;
-  document.getElementById('shortHr').value=bh; document.getElementById('shortMin').value=bm; document.getElementById('shortSec').value=bs;
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (!isRunning) initTimer();
+function applyPreset(fh,fm,fs,sh,sm,ss,lh,lm,ls,btn) {
+document.getElementById('focusHr').value=fh; document.getElementById('focusMin').value=fm; document.getElementById('focusSec').value=fs;
+document.getElementById('shortHr').value=sh; document.getElementById('shortMin').value=sm; document.getElementById('shortSec').value=ss;
+document.getElementById('longHr').value=lh;  document.getElementById('longMin').value=lm;  document.getElementById('longSec').value=ls;
+document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+if (!isRunning) initTimer();
 }
 
 // Persistent AudioContext (one shared instance, resumed before use)
 let _audioCtx = null;
 
 function getAudioCtx() {
-  if (!_audioCtx) {
-    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  return _audioCtx;
+if (!_audioCtx) {
+_audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+return _audioCtx;
 }
 
 // Unlock/warm up the audio context on any user gesture
 function warmAudio() {
-  try {
-    const ctx = getAudioCtx();
-    if (ctx.state === 'suspended') ctx.resume();
-  } catch(e) {}
+try {
+const ctx = getAudioCtx();
+if (ctx.state === 'suspended') ctx.resume();
+} catch(e) {}
 }
 
 document.querySelectorAll('.sound-opt').forEach(opt => {
-  opt.addEventListener('click', () => {
-    document.querySelectorAll('.sound-opt').forEach(o => o.classList.remove('active'));
-    opt.classList.add('active');
-    warmAudio(); // unlock audio on sound selection too
-  });
+opt.addEventListener('click', () => {
+document.querySelectorAll('.sound-opt').forEach(o => o.classList.remove('active'));
+opt.classList.add('active');
+warmAudio(); // unlock audio on sound selection too
+});
 });
 
 // Warm up on play button interaction
@@ -395,75 +431,75 @@ document.getElementById('skipBtn').addEventListener('mousedown', warmAudio);
 document.getElementById('resetBtn').addEventListener('mousedown', warmAudio);
 
 async function playAlert() {
-  const selected = document.querySelector('.sound-opt.active input');
-  if (!selected || selected.value === 'none') return Promise.resolve();
-  try {
-    const ctx = getAudioCtx();
-    if (ctx.state === 'suspended') await ctx.resume();
+const selected = document.querySelector('.sound-opt.active input');
+if (!selected || selected.value === 'none') return Promise.resolve();
+try {
+const ctx = getAudioCtx();
+if (ctx.state === 'suspended') await ctx.resume();
 
-    // Master volume booster
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(1.5, ctx.currentTime); // boost overall volume
-    masterGain.connect(ctx.destination);
+// Master volume booster
+const masterGain = ctx.createGain();
+masterGain.gain.setValueAtTime(1.5, ctx.currentTime); // boost overall volume
+masterGain.connect(ctx.destination);
 
-    const t = ctx.currentTime;
+const t = ctx.currentTime;
 
-    if (selected.value === 'bell') {
-      // Play 3 loud bell strikes in sequence
-      const strikes = [t, t + 0.9, t + 1.8];
-      strikes.forEach(strikeTime => {
-        // Fundamental
-        const osc1  = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(880, strikeTime);
-        osc1.frequency.exponentialRampToValueAtTime(440, strikeTime + 0.8);
-        gain1.gain.setValueAtTime(0, strikeTime);
-        gain1.gain.linearRampToValueAtTime(0.7, strikeTime + 0.01);
-        gain1.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.85);
-        osc1.connect(gain1); gain1.connect(masterGain);
-        osc1.start(strikeTime); osc1.stop(strikeTime + 0.85);
+if (selected.value === 'bell') {
+// Play 3 loud bell strikes in sequence
+const strikes = [t, t + 0.9, t + 1.8];
+strikes.forEach(strikeTime => {
+// Fundamental
+const osc1  = ctx.createOscillator();
+const gain1 = ctx.createGain();
+osc1.type = 'sine';
+osc1.frequency.setValueAtTime(880, strikeTime);
+osc1.frequency.exponentialRampToValueAtTime(440, strikeTime + 0.8);
+gain1.gain.setValueAtTime(0, strikeTime);
+gain1.gain.linearRampToValueAtTime(0.7, strikeTime + 0.01);
+gain1.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.85);
+osc1.connect(gain1); gain1.connect(masterGain);
+osc1.start(strikeTime); osc1.stop(strikeTime + 0.85);
 
-        // Harmonic overtone
-        const osc2  = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1320, strikeTime);
-        osc2.frequency.exponentialRampToValueAtTime(660, strikeTime + 0.6);
-        gain2.gain.setValueAtTime(0, strikeTime);
-        gain2.gain.linearRampToValueAtTime(0.4, strikeTime + 0.01);
-        gain2.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.7);
-        osc2.connect(gain2); gain2.connect(masterGain);
-        osc2.start(strikeTime); osc2.stop(strikeTime + 0.7);
-      });
-      // Total bell duration: ~2.65s
-      return new Promise(resolve => setTimeout(resolve, 2700));
+// Harmonic overtone
+const osc2  = ctx.createOscillator();
+const gain2 = ctx.createGain();
+osc2.type = 'sine';
+osc2.frequency.setValueAtTime(1320, strikeTime);
+osc2.frequency.exponentialRampToValueAtTime(660, strikeTime + 0.6);
+gain2.gain.setValueAtTime(0, strikeTime);
+gain2.gain.linearRampToValueAtTime(0.4, strikeTime + 0.01);
+gain2.gain.exponentialRampToValueAtTime(0.001, strikeTime + 0.7);
+osc2.connect(gain2); gain2.connect(masterGain);
+osc2.start(strikeTime); osc2.stop(strikeTime + 0.7);
+});
+// Total bell duration: ~2.65s
+return new Promise(resolve => setTimeout(resolve, 2700));
 
-    } else {
-      // Chime: ascending 4-note sequence, repeated twice
-      const playChimeSet = (startT) => {
-        const notes = [528, 660, 880, 1050];
-        notes.forEach((freq, i) => {
-          const when = startT + i * 0.22;
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = 'sine';
-          o.frequency.setValueAtTime(freq, when);
-          g.gain.setValueAtTime(0, when);
-          g.gain.linearRampToValueAtTime(0.6, when + 0.01);
-          g.gain.exponentialRampToValueAtTime(0.001, when + 0.5);
-          o.connect(g); g.connect(masterGain);
-          o.start(when); o.stop(when + 0.5);
-        });
-      };
-      playChimeSet(t);
-      playChimeSet(t + 1.2); // repeat after 1.2s
-      return new Promise(resolve => setTimeout(resolve, 2800));
-    }
-  } catch(e) {
-    console.warn('Audio playback failed:', e);
-    return Promise.resolve();
-  }
+} else {
+// Chime: ascending 4-note sequence, repeated twice
+const playChimeSet = (startT) => {
+const notes = [528, 660, 880, 1050];
+notes.forEach((freq, i) => {
+const when = startT + i * 0.22;
+const o = ctx.createOscillator();
+const g = ctx.createGain();
+o.type = 'sine';
+o.frequency.setValueAtTime(freq, when);
+g.gain.setValueAtTime(0, when);
+g.gain.linearRampToValueAtTime(0.6, when + 0.01);
+g.gain.exponentialRampToValueAtTime(0.001, when + 0.5);
+o.connect(g); g.connect(masterGain);
+o.start(when); o.stop(when + 0.5);
+});
+};
+playChimeSet(t);
+playChimeSet(t + 1.2); // repeat after 1.2s
+return new Promise(resolve => setTimeout(resolve, 2800));
+}
+} catch(e) {
+console.warn('Audio playback failed:', e);
+return Promise.resolve();
+}
 }
 
 function showFinishModal()  { document.getElementById('finishModal').classList.add('is-open'); }
@@ -471,7 +507,7 @@ function hideFinishModal()  { document.getElementById('finishModal').classList.r
 function confirmFinish()    { document.getElementById('finishForm').submit(); }
 
 document.getElementById('finishModal').addEventListener('click', function(e) {
-  if (e.target === this) hideFinishModal();
+if (e.target === this) hideFinishModal();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hideFinishModal(); });
 
